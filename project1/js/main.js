@@ -1,3 +1,5 @@
+$(".ui.dropdown").dropdown();
+
 $(function() {
-    console.log("Testing");
+    introJs().start();
 });

@@ -1,4 +1,8 @@
 <?php
+session_start();
+
+//$_SESSION["user_id"] = 69;
+
 define("DB_SERVER", "192.168.64.3");
 define("DB_USERNAME", "admin");
 define("DB_PASSWORD", "");
