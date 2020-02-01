@@ -23,6 +23,6 @@ function tryViewTable() {
 
 $(function() {
     $(".ui.dropdown").dropdown();
-    $("table").tablesort();
+    //$("table").tablesort();
     introJs().start();
 });

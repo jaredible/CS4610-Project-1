@@ -36,7 +36,7 @@ if (password_verify($password, $hash)) {
             </div>
             <div class="right menu">
                 <div class="item">
-                    <div class="ui teal button">
+                    <div class="ui basic button">
                         <i class="shield icon"></i> View as Administrator
                     </div>
                 </div>
@@ -77,42 +77,52 @@ if (password_verify($password, $hash)) {
             <div class="ui stackable grid">
                 <div class="row">
                     <div class="eight wide column">
-                        <div>
-                            <label>
-                                Show
-                                <div class="ui selection dropdown" style="min-width: 0;">
-                                    <input type="hidden" name="entries" value="10">
-                                    <i class="dropdown icon"></i>
-                                    <div class="text">10</div>
-                                    <div class="menu">
-                                        <div class="item active selected" data-value="10">10</div>
-                                        <div class="item" data-value="25">25</div>
-                                        <div class="item" data-value="50">50</div>
-                                    </div>
-                                </div>
-                                entries
-                            </label>
+                        <div class="ui floating labeled icon dropdown button">
+                            <i class="plus icon"></i>
+                            <span class="text">New</span>
+                            <div class="menu">
+                                <div class="item">Record</div>
+                                <div class="disabled item">Attribute</div>
+                            </div>
                         </div>
                     </div>
                     <div class="right aligned eight wide column">
-                        <div class="ui basic buttons">
-                            <button class="ui button">New</button>
-                            <button class="ui button">Edit</button>
-                            <button class="ui button">Delete</button>
+                        Sort
+                        <div class="ui selection dropdown" style="min-width: 0;">
+                            <input type="hidden" name="column" value="1">
+                            <i class="dropdown icon"></i>
+                            <div class="text">Column1</div>
+                            <div class="menu">
+                                <div class="item" data-value="1">Column1</div>
+                                <div class="item" data-value="2">Column2</div>
+                                <div class="item" data-value="3">Column3</div>
+                                <div class="item" data-value="4">Column4</div>
+                                <div class="item" data-value="5">Column5</div>
+                            </div>
+                        </div>
+                        by
+                        <div class="ui selection dropdown" style="min-width: 0;">
+                            <input type="hidden" name="column" value="asc">
+                            <i class="dropdown icon"></i>
+                            <div class="text">Ascending</div>
+                            <div class="menu">
+                                <div class="item" data-value="asc">Ascending</div>
+                                <div class="item" data-value="desc">Descending</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="row" style="padding: 0;">
                     <div class="sixteen wide column">
-                        <table class="ui sortable celled table">
+                        <table class="ui single line table center aligned">
                             <thead class="full-width">
                                 <tr>
-                                    <th class="no-sort"></th>
                                     <th>Column1</th>
                                     <th>Column2</th>
                                     <th>Column3</th>
                                     <th>Column4</th>
                                     <th>Column5</th>
+                                    <th class="collapsing">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -120,66 +130,74 @@ if (password_verify($password, $hash)) {
                                 for ($i = 0; $i < 5; $i++) {
                                 ?>
                                 <tr>
-                                    <td class="collapsing">
-                                        <div class="ui fitted slider checkbox">
-                                            <input type="checkbox"> <label></label>
+                                    <?php
+                                    for ($j = 0; $j < 5; $j++) {
+                                    ?>
+                                    <td>
+                                        <?php
+                                        if ($i == 0) {
+                                        ?>
+                                        <div class="ui fluid input">
+                                            <input type="text" placeholder="Data...">
+                                        </div>
+                                        <?php
+                                        } else {
+                                        ?>
+                                        Data<?php echo $i + 2 ?>
+                                        <?php
+                                        }
+                                        ?>
+                                    </td>
+                                    <?php
+                                    }
+                                    ?>
+                                    <td>
+                                        <div class="ui basic buttons">
+                                            <button class="ui button">Edit</button>
+                                            <button class="ui button">Delete</button>
                                         </div>
                                     </td>
-                                    <td>Data<?php echo $i + 1 ?></td>
-                                    <td>Data<?php echo $i + 2 ?></td>
-                                    <td>Data<?php echo $i + 3 ?></td>
-                                    <td>Data<?php echo $i + 4 ?></td>
-                                    <td>Data<?php echo $i + 5 ?></td>
                                 </tr>
                                 <?php
                                 }
                                 ?>
-                                <tr style="display: none;">
-                                    <td class="collapsing">
-                                        <div class="ui fitted slider checkbox">
-                                            <input type="checkbox"> <label></label>
-                                        </div>
-                                    </td>
-                                    <td>Data0</td>
-                                    <td>Data1</td>
-                                    <td>Data2</td>
-                                    <td>Data3</td>
-                                    <td>Data4</td>
-                                </tr>
                             </tbody>
                             <tfoot class="full-width">
                                 <tr>
+                                    <th>
+                                        <div class="ui basic buttons">
+                                            <button class="ui button"><i class="fitted arrow up icon"></i></button>
+                                            <button class="ui button"><i class="fitted arrow down icon"></i></button>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="ui basic buttons">
+                                            <button class="ui button"><i class="fitted arrow up icon"></i></button>
+                                            <button class="ui button"><i class="fitted arrow down icon"></i></button>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="ui basic buttons">
+                                            <button class="ui button"><i class="fitted arrow up icon"></i></button>
+                                            <button class="ui button"><i class="fitted arrow down icon"></i></button>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="ui basic buttons">
+                                            <button class="ui button"><i class="fitted arrow up icon"></i></button>
+                                            <button class="ui button"><i class="fitted arrow down icon"></i></button>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="ui basic buttons">
+                                            <button class="ui button"><i class="fitted arrow up icon"></i></button>
+                                            <button class="ui button"><i class="fitted arrow down icon"></i></button>
+                                        </div>
+                                    </th>
                                     <th></th>
-                                    <th>Column1</th>
-                                    <th>Column2</th>
-                                    <th>Column3</th>
-                                    <th>Column4</th>
-                                    <th>Column5</th>
                                 </tr>
                             </tfoot>
                         </table>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="seven wide column">
-                        <div>
-                            Showing 1 to 10 of 57 entries
-                        </div>
-                    </div>
-                    <div class="right aligned nine wide column">
-                        <div>
-                            <div class="ui pagination menu">
-                                <a class="icon item disabled">
-                                    <i class="left chevron icon"></i>
-                                </a>
-                                <a class="active item disabled">1</a>
-                                <a class="item">2</a>
-                                <a class="item">3</a>
-                                <a class="icon item">
-                                    <i class="right chevron icon"></i>
-                                </a>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
