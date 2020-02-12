@@ -10,7 +10,7 @@ class Post extends \Core\Model {
         try {
             $db = static::getDB();
 
-            $stmt = $db->query('SELECT id, title, content FROM posts ORDER BY created_time');
+            $stmt = $db->query('SELECT course_number, course_name, credit_hours FROM course ORDER BY department');
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             return $results;

@@ -5,7 +5,7 @@ namespace App\Controllers;
 use \Core\View;
 use App\Models\Post;
 
-class Home extends \Core\Controller {
+class Admin extends \Core\Controller {
 
     protected function before() {
     }
@@ -16,7 +16,7 @@ class Home extends \Core\Controller {
     public function indexAction() {
         $posts = Post::getAll();
 
-        View::renderTemplate('Home/index.html', [
+        View::renderTemplate('Admin/index.html', [
             'name' => 'Jared',
             'colors' => ['red', 'green', 'blue'],
             'posts' => $posts
