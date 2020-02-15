@@ -5,7 +5,7 @@ namespace App\Controllers;
 use \Core\View;
 use App\Models\Post;
 
-class Home extends \Core\Controller {
+class Account extends \Core\Controller {
 
     protected function before() {
     }
@@ -21,6 +21,12 @@ class Home extends \Core\Controller {
             'colors' => ['red', 'green', 'blue'],
             'posts' => $posts
         ]);
+    }
+
+    public function loginAction() {
+    }
+
+    public function registerAction() {
     }
 
 }

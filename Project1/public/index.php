@@ -13,6 +13,8 @@ $router = new Core\Router();
 $router->add('', ['controller' => 'Home', 'action' => 'index']);
 $router->add('{controller}/{action}');
 
+echo $_SERVER['REQUEST_URI'] . '<br>';
+
 $router->dispatch($_SERVER['QUERY_STRING']);
 
 ?>
