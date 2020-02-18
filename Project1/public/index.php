@@ -1,9 +1,13 @@
 <?php
 
+// CREATE: INSERT INTO table_name (column1, ...) VALUES (value1, ...);
+// UPDATE: UPDATE table_name SET column1 = value1, ... WHERE column1 = value1, ...;
+// DELETE: DELETE FROM table_name WHERE column1 = value1, ...;
+
 session_start();
 
 // Load configurations
-require_once('config.php');
+require_once('../config/database.php');
 
 // Attempt to connect to the database, and if not, then display an error message
 $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
