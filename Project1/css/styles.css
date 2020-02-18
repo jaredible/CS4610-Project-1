@@ -1,0 +1,12 @@
+.wrapper {
+    margin: 0 auto;
+    width: 850px;
+}
+
+.bd {
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    margin-left: 0;
+    margin-right: 0;
+    border: .2rem solid #f7f7f9;
+}
