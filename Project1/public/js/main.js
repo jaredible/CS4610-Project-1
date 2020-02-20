@@ -11,14 +11,19 @@ function push() {
     $('.ui.sidebar').sidebar('toggle');
 }
 
+function sort() {
+    
+}
+
 function create() {
     disable('.action.button');
     enable('#create .action.button');
     // TODO: stop editing current rows
 }
 
-function edit(key) {
-    console.log(key);
+function edit(query) {
+    console.log(query);
+    window.location.href = "?" + query;
 }
 
 function remove(key) {
@@ -32,3 +37,11 @@ function disable(css) {
 function enable(css) {
     $(css).removeClass('disabled');
 }
+
+$(function() {
+    $("table tbody").find("tr").each(function(key, val) {
+        $(this).find("td.data").each(function(key, val) {
+            console.log(val.innerHTML);
+        });
+    });
+});

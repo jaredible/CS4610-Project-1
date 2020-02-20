@@ -7,10 +7,10 @@
 session_start();
 
 // Load configurations
-require_once('../config/database.php');
+require_once('../config/config.php');
 
 // Attempt to connect to the database, and if not, then display an error message
-$conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
 if (!$conn) {
     die('Could not connect: ' . mysqli_connect_error());
 }
@@ -19,7 +19,7 @@ $param_username = filter_input(INPUT_POST, 'username');
 $param_password = filter_input(INPUT_POST, 'password');
 
 if (isset($param_username) && isset($param_password)) {
-    if ($param_username === DB_USER && $param_password === DB_PASS) {
+    if ($param_username === $db_user && $param_password === $db_pass) {
         $_SESSION['logged_in'] = true;
     }
 }
@@ -27,50 +27,54 @@ if (isset($param_username) && isset($param_password)) {
 $param_table = filter_input(INPUT_GET, 'table');
 
 // We need to populate these variables
-$current_table_name = '';
-$tables_names = array();
-$column_names = array();
+$current_table = '';
+$tables = array();
+$fields = array();
 $data = array(); // Will be a multidimensional array
 
 // Get all table names in alphabetical order
-$query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'universitydb' ORDER BY TABLE_NAME ASC";
+$query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '$db_name' ORDER BY TABLE_NAME ASC";
 $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_array($result)) {
-    $table_names[] = $row[0];
+    $tables[] = $row[0];
 }
 
 // Set the current table name before we get column names and data
-$current_table_name = $param_table;
-if (!isset($current_table_name)) {
-    $current_table_name = $table_names[0];
+$current_table = $param_table;
+if (!isset($current_table)) {
+    $current_table = $tables[0];
 }
 
 // Get current table's column names
-$query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'universitydb' AND TABLE_NAME = '$current_table_name'";
+$query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table'";
 $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_array($result)) {
-    $column_names[] = $row[0];
+    $fields[] = $row[0];
 }
 
-switch ($_SERVER['REQUEST_METHOD']) {
-    case 'GET':
-        echo 'GET';
-        break;
-    case 'POST':
-        echo var_dump($_GET);
-        echo var_dump($_POST);
-        echo 'POST';
-        break;
+if (isset($_POST['submit'])) {
+    if (isset($_POST['action'])) {
+        switch ($_POST['action']) {
+            case 'create':
+                foreach ($fields as $field_name) {
+                }
+
+                //$sql = "INSERT INTO $current_table (" . implode(', ', $fields) . ') VALUES (' . ;
+                //echo $sql;
+                break;
+            case 'update':
+                break;
+            case 'delete':
+                break;
+        }
+    }
 }
 
 // Get current table's data
-$query = "SELECT * FROM $current_table_name";
+$query = "SELECT * FROM $current_table";
 $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
-    $i = 0;
-    foreach ($row as $col) {
-        $data[$i++][] = $col;
-    }
+    $data[] = $row;
 }
 
 ?>
@@ -85,11 +89,9 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         <link rel="stylesheet" type="text/css" href="css/styles.css">
     </head>
     <body>
-        <button class="ui button"><?php echo 'Log ' . (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] ? 'Out' : 'In') ?></button>
-
         <div class="ui inverted left vertical sidebar menu sidebar">
-            <?php foreach ($table_names as $table_name): ?>
-                <a class="item <?php if ($table_name === $current_table_name) echo 'active' ?>" href="?table=<?php echo $table_name ?>"><?php echo ucwords(str_replace("_", " ", $table_name)) ?></a>
+            <?php foreach ($tables as $table): ?>
+                <a class="item <?php if ($table === $current_table) echo 'active' ?>" href="?table=<?php echo $table ?>"><?php echo ucwords(str_replace("_", " ", $table)) ?></a>
             <?php endforeach ?>
         </div>
         <div class="dimmed pusher">
@@ -105,64 +107,40 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                         </div>
                         <div class="row">
                             <div class="sixteen wide column">
-                                <form action="" method="">
-                                    <table class="ui center aligned table">
-                                        <tbody>
-                                            <tr>
-                                                <?php foreach ($column_names as $column_name): ?>
-                                                    <td>
-                                                        <div class="ui fluid input">
-                                                            <input type="text" placeholder="<?php echo ucwords(str_replace("_", " ", $column_name)) ?>">
-                                                        </div>
-                                                    </td>
-                                                <?php endforeach ?>
-                                                <td>
-                                                    <div class="ui basic buttons">
-                                                        <button class="ui button">New Row</button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="sixteen wide column">
-                                <table class="ui center aligned table">
+                                <table class="ui center aligned table" data-table="<?php echo $current_table ?>">
                                     <thead class="full-width">
                                         <tr>
-                                            <?php foreach ($column_names as $column_name): ?>
-                                                <th><?php echo ucwords(str_replace("_", " ", $column_name)) ?></th>
+                                            <?php foreach ($fields as $field_name): ?>
+                                                <th data-field="<?php echo $field_name ?>"><?php echo $field_name ?></th>
                                             <?php endforeach ?>
                                             <th class="collapsing">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php for ($i = 0; $i < count($data[0]); $i++): ?>
+                                        <?php foreach ($data as $row): ?>
                                             <tr>
-                                                <?php for ($j = 0; $j < count($column_names); $j++): ?>
-                                                    <td><?php echo $data[$j][$i] ?></td>
-                                                <?php endfor ?>
+                                                <?php foreach ($row as $col => $col_value): ?>
+                                                    <td data-value="<?php $col_value ?>"><?php echo $col_value ?></td>
+                                                <?php endforeach ?>
                                                 <td>
                                                     <div class="ui basic icon buttons">
-                                                        <button class="ui action button" onclick="edit(<?php echo $data[0][$i] ?>)"><i class="edit icon"></i></button>
-                                                        <button class="ui action button" onclick="remove(<?php echo $data[0][$i] ?>)"><i class="trash icon"></i></button>
+                                                        <button class="ui action button" onclick="edit('<?php echo 'table=' . $current_table . '&' . http_build_query($row) ?>')"><i class="edit icon"></i></button>
+                                                        <button class="ui action button"><i class="trash icon"></i></button>
                                                     </div>
                                                 </td>
                                             </tr>
-                                        <?php endfor ?>
+                                        <?php endforeach ?>
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <?php for ($i = 0; $i < count($column_names); $i++): ?>
+                                            <?php foreach ($fields as $field_name): ?>
                                                 <td>
                                                     <div class="ui basic icon buttons">
                                                         <button class="ui sort button"><i class="fitted up arrow icon"></i></button>
                                                         <button class="ui sort button"><i class="fitted down arrow icon"></i></button>
                                                     </div>
                                                 </td>
-                                            <?php endfor ?>
+                                            <?php endforeach ?>
                                             <td></td>
                                         </tr>
                                     </tfoot>
@@ -174,9 +152,52 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
             </div>
         </div>
 
-        <form method="post" style="display: hidden;">
-            <input type="text" name="test" value="testing">
-            <input type="submit" value="Test">
+        <!-- Check if the form has been submitted -->
+        <?php if (isset($_POST['submit'])): ?>
+
+            <!-- Check if an action exists -->
+            <?php if (isset ($_POST['action'])): ?>
+                
+                <!-- Check if is a create action -->
+                <?php if ($_POST['action'] === 'create'): ?>
+
+                    <!-- Provide a form for creating -->
+                    <form method="post">
+                        <?php foreach ($fields as $field_name) ?>
+                            <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
+                        <?php ?>
+                        <input type="submit" name="submit" value="Enter">
+                    </form>
+
+                <?php endif ?>
+
+                <!-- Check if is an update action -->
+                <?php if ($_POST['action'] === 'update'): ?>
+
+                    <!-- Provide a form for updating -->
+                    <form method="post">
+                    </form>
+
+                <?php endif ?>
+
+                <!-- Check if is a delete action -->
+                <?php if ($_POST['action'] === 'delete'): ?>
+
+                    <!-- Provide a form for deleting -->
+                    <form method="post">
+                    </form>
+
+                <?php endif ?>
+
+            <?php endif ?>
+
+        <?php endif ?>
+
+        <form id="createForm" method="post" style="display: hidden;">
+            <?php foreach ($fields as $field_name): ?>
+                <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
+            <?php endforeach ?>
+            <input type="submit" name="submit" value="Enter">
         </form>
 
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
