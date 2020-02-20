@@ -171,8 +171,8 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                         <?php foreach ($fields as $field_name): ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <button class="ui sort button" onclick="sort('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
-                                                                    <button class="ui sort button" onclick="sort('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
+                                                                    <button class="ui sort button" onclick="order('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+                                                                    <button class="ui sort button" onclick="order('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         <?php endforeach ?>

@@ -1,5 +1,5 @@
 
-function sort(field, order) {
+function order(field, order) {
     let url = new URL(window.location.href);
     let query_string = url.search;
     let search_params = new URLSearchParams(query_string);
