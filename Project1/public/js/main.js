@@ -9,13 +9,35 @@ function order(field, order) {
     window.location.href = new_url;
 }
 
-function create() {
-    disable('.action.button');
-    enable('#create .action.button');
-    // TODO: stop editing current rows
+function open_create() {
+    let createRow = $("table tbody tr:first");
+    createRow.show();
 }
 
-function edit(rowId) {
+function cancel_create() {
+    let createRow = $("table tbody tr:first");
+    createRow.hide();
+    clear_create_input();
+}
+
+function clear_create_input() {
+    let createRow = $("table tbody tr:first");
+    createRow.find("td.input input").each(function(index, value) {
+        $(this).val("");
+    });
+}
+
+function send_create() {
+    let createRow = $(`table tbody tr:first`);
+    let createForm = $("#createForm");
+    createForm.find("input.data").each(function(index, value) {
+        let field_name = $(this).attr("name");
+        $(this).val(createRow.find("td.input input").val());
+    });
+    createForm.submit();
+}
+
+function open_edit(rowId) {
     var editRow = $(`table tbody tr[data-row='${rowId}']`);
     console.log(editRow);
     var updateForm = $("#updateForm");
@@ -25,27 +47,27 @@ function edit(rowId) {
     });
 }
 
-function remove(rowId) {
-    console.log(rowId);
-    let updateRow = $(`table tbody tr[data-row='${rowId}']`);
-    let updateForm = $("#deleteForm");
-    updateForm.find("input.data").each(function(index, value) {
+function cancel_edit() {
+    // TODO: only a single row can be edited at a time
+}
+
+function send_edit() {
+}
+
+function send_remove(rowId) {
+    let deleteRow = $(`table tbody tr[data-row='${rowId}']`);
+    let deleteForm = $("#deleteForm");
+    deleteForm.find("input.data").each(function(index, value) {
         let field_name = $(this).attr("name");
-        $(this).val(updateRow.find(`td[data-field='${field_name}']`).attr("data-value"));
+        $(this).val(deleteRow.find(`td[data-field='${field_name}']`).attr("data-value"));
     });
-    $(`table tbody tr[data-row='${rowId}']`).find("td.data").each(function(index, value) {
-        console.log(`${$(this).attr("data-field")}=${$(this).attr("data-value")}`);
-        //console.log(`index: ${index}, value: ${$(this).text()}`);
-        //console.log($(this).text());
-    });
+    deleteForm.submit();
 }
 
-function disable(css) {
-    $(css).addClass('disabled');
-}
-
-function enable(css) {
-    $(css).removeClass('disabled');
+function init_sidebar() {
+    $(".context .ui.sidebar").sidebar({
+        context: $(".context .bottom.segment")
+    }).sidebar("attach events", ".context .menu .item:first");
 }
 
 function check_error() {
@@ -64,9 +86,6 @@ function check_error() {
 }
 
 $(function() {
+    init_sidebar();
     check_error();
-
-    $(".context .ui.sidebar").sidebar({
-        context: $(".context .bottom.segment")
-    }).sidebar("attach events", ".context .menu .item:first");
 });

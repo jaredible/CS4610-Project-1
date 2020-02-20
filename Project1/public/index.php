@@ -16,15 +16,6 @@ if (!$conn) {
     die('Could not connect: ' . mysqli_connect_error());
 }
 
-$param_username = filter_input(INPUT_POST, 'username');
-$param_password = filter_input(INPUT_POST, 'password');
-
-if (isset($param_username) && isset($param_password)) {
-    if ($param_username === $db_user && $param_password === $db_pass) {
-        $_SESSION['logged_in'] = true;
-    }
-}
-
 $param_table = filter_input(INPUT_GET, 'table');
 $param_order = filter_input(INPUT_GET, 'order');
 
@@ -56,50 +47,48 @@ while ($row = mysqli_fetch_array($result)) {
 }
 
 // Before getting the current table's data, check if created, updated, or deleted
-if (isset($_POST['submit'])) {
-    if (isset($_POST['action'])) {
-        switch ($_POST['action']) {
-            case 'create':
-                $sql = 'INSERT INTO course (course_number, course_name, credit_hours, department) VALUES (?, ?, ?, ?)';
-                if ($stmt = mysqli_prepare($conn, $sql)) {
-                    mysqli_stmt_bind_param($stmt, "ssss", $course_number, $course_name, $credit_hours, $department);
-                    $course_number = $_POST['course_number'];
-                    $course_name = $_POST['course_name'];
-                    $credit_hours = $_POST['credit_hours'];
-                    $department = $_POST['department'];
-                    if (mysqli_stmt_execute($stmt)) {
-                        header('Location: index.php');
-                        exit();
-                    } else {
-                        $error['type'] = 'sql create';
-                        $error['message'] = 'Something went wrong when creating!';
-                    }
+if (isset($_POST['action'])) {
+    switch ($_POST['action']) {
+        case 'create':
+            $sql = 'INSERT INTO course (course_number, course_name, credit_hours, department) VALUES (?, ?, ?, ?)';
+            if ($stmt = mysqli_prepare($conn, $sql)) {
+                mysqli_stmt_bind_param($stmt, "ssss", $course_number, $course_name, $credit_hours, $department);
+                $course_number = $_POST['course_number'];
+                $course_name = $_POST['course_name'];
+                $credit_hours = $_POST['credit_hours'];
+                $department = $_POST['department'];
+                if (mysqli_stmt_execute($stmt)) {
+                    header('Location: index.php');
+                    exit();
+                } else {
+                    $error['type'] = 'sql create';
+                    $error['message'] = mysqli_error($conn);
                 }
-                mysqli_stmt_close($stmt);
-                break;
-            case 'update':
-                echo 'update<br>';
-                echo '<pre>' . var_dump($_POST) . '</pre>';
-                break;
-            case 'delete':
-                $sql = 'DELETE FROM course WHERE course_number = ? AND course_name = ? AND credit_hours = ? AND department = ?';
-                if ($stmt = mysqli_prepare($conn, $sql)) {
-                    mysqli_stmt_bind_param($stmt, "ssss", $course_number, $course_name, $credit_hours, $department);
-                    $course_number = $_POST['course_number'];
-                    $course_name = $_POST['course_name'];
-                    $credit_hours = $_POST['credit_hours'];
-                    $department = $_POST['department'];
-                    if (mysqli_stmt_execute($stmt)) {
-                        header('Location: index.php');
-                        exit();
-                    } else {
-                        $error['type'] = 'sql delete';
-                        $error['message'] = 'Something went wrong when deleting!';
-                    }
+            }
+            mysqli_stmt_close($stmt);
+            break;
+        case 'update':
+            echo 'update<br>';
+            echo '<pre>' . var_dump($_POST) . '</pre>';
+            break;
+        case 'delete':
+            $sql = 'DELETE FROM course WHERE course_number = ? AND course_name = ? AND credit_hours = ? AND department = ?';
+            if ($stmt = mysqli_prepare($conn, $sql)) {
+                mysqli_stmt_bind_param($stmt, "ssss", $course_number, $course_name, $credit_hours, $department);
+                $course_number = $_POST['course_number'];
+                $course_name = $_POST['course_name'];
+                $credit_hours = $_POST['credit_hours'];
+                $department = $_POST['department'];
+                if (mysqli_stmt_execute($stmt)) {
+                    header('Location: index.php');
+                    exit();
+                } else {
+                    $error['type'] = 'sql delete';
+                    $error['message'] = mysqli_error($conn);
                 }
-                mysqli_stmt_close($stmt);
-                break;
-        }
+            }
+            mysqli_stmt_close($stmt);
+            break;
     }
 }
 
@@ -133,7 +122,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     <a class="item"><i class="sidebar icon"></i>Tables</a>
                     <a class="item" href="index.php"><i class="home icon"></i>Home</a>
                     <div class="right menu">
-                        <a class="item" href="login.php"><i class="sign in icon"></i><?php echo 'Log ' . (0 === 1 ? 'Out' : 'In') ?></a>
+                        <a class="item" href="login.php"><i class="sign <?php echo 0 === 1 ? 'out' : 'in' ?> icon"></i><?php echo 'Log ' . (0 === 1 ? 'Out' : 'In') ?></a>
                         <!--<a class="item"><i class="help icon"></i>Help</a>-->
                     </div>
                 </div>
@@ -155,7 +144,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                     <div class="row">
                                         <div class="sixteen wide column">
                                             <div class="ui basic right floated buttons">
-                                                <button class="ui button"><i class="plus icon"></i>New Row</button>
+                                                <button class="ui button" onclick="open_create()"><i class="plus icon"></i>New Row</button>
                                             </div>
                                         </div>
                                     </div>
@@ -173,15 +162,16 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                 <tbody>
                                                     <tr style="display: none;">
                                                         <?php foreach ($fields as $field_name): ?>
-                                                            <td>
+                                                            <td class="input">
                                                                 <div class="ui fluid input">
-                                                                    <input type="text" name="" value="" placeholder="<?php echo $field_name ?>">
+                                                                    <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
                                                                 </div>
                                                             </td>
                                                         <?php endforeach ?>
                                                         <td>
                                                             <div class="ui basic icon buttons">
-                                                                <button class="ui button">Enter</button>
+                                                                <button class="ui button" onclick="cancel_create()"><i class="cancel icon"></i></button>
+                                                                <button class="ui button" onclick="create()"><i class="save icon"></i></button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -192,10 +182,10 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                             <?php endforeach ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <!--<button class="ui button"><i class="cancel icon"></i></button>
-                                                                    <button class="ui button"><i class="save icon"></i></button>-->
-                                                                    <button class="ui button" onclick="edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
-                                                                    <button class="ui button" onclick="remove('<?php echo $row ?>')"><i class="trash icon"></i></button>
+                                                                    <!--<button class="ui button" onclick="cancel_edit()"><i class="cancel icon"></i></button>
+                                                                    <button class="ui button" onclick="send_edit()"><i class="save icon"></i></button>-->
+                                                                    <button class="ui button" onclick="open_edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
+                                                                    <button class="ui button" onclick="send_remove('<?php echo $row ?>')"><i class="trash icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -228,9 +218,8 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         <form id="createForm" method="post" style="display: none;">
             <input type="hidden" name="action" value="create">
             <?php foreach ($fields as $field_name): ?>
-                <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
+                <input class="data" type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
             <?php endforeach ?>
-            <input type="submit" name="submit" value="Enter">
         </form>
 
         <form id="updateForm" method="post" style="display: none;">
@@ -247,7 +236,6 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
             <?php foreach ($fields as $field_name): ?>
                 <input class="data" type="hidden" name="<?php echo $field_name ?>" value="">
             <?php endforeach ?>
-            <input type="submit" name="submit">
         </form>
 
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
