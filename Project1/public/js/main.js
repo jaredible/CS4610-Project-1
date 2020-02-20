@@ -1,8 +1,4 @@
 
-function push() {
-    $('.ui.sidebar').sidebar('toggle');
-}
-
 function sort(field, order) {
     let url = new URL(window.location.href);
     let query_string = url.search;
@@ -60,6 +56,10 @@ function check_error() {
 
 $(function() {
     check_error();
+
+    $(".context .ui.sidebar").sidebar({
+        context: $(".context .bottom.segment")
+    }).sidebar("attach events", ".context .menu .item:first");
     
     $("table tbody tr[data-row]").each(function(index1, value1) {
         $(this).find("td[data-value]").each(function(index2, value2) {

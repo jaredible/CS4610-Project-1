@@ -1,3 +1,4 @@
+
 <?php
 
 // CREATE: INSERT INTO table_name (column1, ...) VALUES (value1, ...);
@@ -114,62 +115,74 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
     </head>
     <body>
         <data id="error" value="<?php echo $error['type'] ?>" hidden><?php echo $error['message'] ?></data>
-        <div class="ui inverted left vertical sidebar menu sidebar">
-            <?php foreach ($tables as $table): ?>
-                <a class="item <?php if ($table === $current_table) echo 'active' ?>" href="?table=<?php echo $table ?>"><?php echo ucwords(str_replace("_", " ", $table)) ?></a>
-            <?php endforeach ?>
-        </div>
-        <div class="dimmed pusher">
-            <div class="ui container">
-                <div class="ui segment">
-                    <div class="ui stackable grid">
-                        <div class="row">
-                            <div class="sixteen wide column">
-                                <div class="ui basic buttons">
-                                    <button class="ui button" onclick="push()">Test</button>
+        <div class="context">
+            <div class="ui top attached segment" style="padding: 0; border: 0;">
+                <div class="ui top attached menu">
+                    <a class="item"><i class="sidebar icon"></i>Tables</a>
+                    <a class="item" href="index.php"><i class="home icon"></i>Home</a>
+                    <div class="right menu">
+                        <a class="item" href="login.php"><i class="sign in icon"></i><?php echo 'Log ' . (0 === 1 ? 'Out' : 'In') ?></a>
+                        <!--<a class="item"><i class="help icon"></i>Help</a>-->
+                    </div>
+                </div>
+                <div class="ui bottom attached segment pushable">
+                    <div class="ui inverted labeled icon left inline vertical sidebar menu">
+                        <?php foreach ($tables as $table): ?>
+                            <a class="item <?php if ($table === $current_table) echo 'active' ?>" href="?table=<?php echo $table ?>"><i class="table icon"></i><?php echo ucwords(str_replace("_", " ", $table)) ?></a>
+                        <?php endforeach ?>
+                    </div>
+                    <div class="pusher">
+                        <div class="ui container">
+                            <div class="ui segment" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                                <div class="ui stackable grid">
+                                    <div class="row">
+                                        <div class="sixteen wide column">
+                                            <h2 class="ui dividing header"><?php echo ucwords(str_replace("_", " ", $current_table)) ?></h2>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="sixteen wide column">
+                                            <table class="ui center aligned table" data-table="<?php echo $current_table ?>">
+                                                <thead class="full-width">
+                                                    <tr>
+                                                        <?php foreach ($fields as $field_name): ?>
+                                                            <th data-field="<?php echo $field_name ?>"><?php echo $field_name ?></th>
+                                                        <?php endforeach ?>
+                                                        <th class="collapsing">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($data as $row => $row_value): ?>
+                                                        <tr data-row="<?php echo $row ?>">
+                                                            <?php foreach ($row_value as $col => $col_value): ?>
+                                                                <td data-value="<?php $col_value ?>"><?php echo $col_value ?></td>
+                                                            <?php endforeach ?>
+                                                            <td>
+                                                                <div class="ui basic icon buttons">
+                                                                    <button class="ui action button" onclick="edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
+                                                                    <button class="ui action button" onclick="remove('<?php echo $row ?>')"><i class="trash icon"></i></button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach ?>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <?php foreach ($fields as $field_name): ?>
+                                                            <td>
+                                                                <div class="ui basic icon buttons">
+                                                                    <button class="ui sort button" onclick="sort('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+                                                                    <button class="ui sort button" onclick="sort('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
+                                                                </div>
+                                                            </td>
+                                                        <?php endforeach ?>
+                                                        <td></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="sixteen wide column">
-                                <table class="ui center aligned table" data-table="<?php echo $current_table ?>">
-                                    <thead class="full-width">
-                                        <tr>
-                                            <?php foreach ($fields as $field_name): ?>
-                                                <th data-field="<?php echo $field_name ?>"><?php echo $field_name ?></th>
-                                            <?php endforeach ?>
-                                            <th class="collapsing">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($data as $row => $row_value): ?>
-                                            <tr data-row="<?php echo $row ?>">
-                                                <?php foreach ($row_value as $col => $col_value): ?>
-                                                    <td data-value="<?php $col_value ?>"><?php echo $col_value ?></td>
-                                                <?php endforeach ?>
-                                                <td>
-                                                    <div class="ui basic icon buttons">
-                                                        <button class="ui action button" onclick="edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
-                                                        <button class="ui action button" onclick="remove('<?php echo $row ?>')"><i class="trash icon"></i></button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach ?>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <?php foreach ($fields as $field_name): ?>
-                                                <td>
-                                                    <div class="ui basic icon buttons">
-                                                        <button class="ui sort button" onclick="sort('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
-                                                        <button class="ui sort button" onclick="sort('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
-                                                    </div>
-                                                </td>
-                                            <?php endforeach ?>
-                                            <td></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
                             </div>
                         </div>
                     </div>
@@ -177,7 +190,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
             </div>
         </div>
 
-        <form id="createForm" method="post" style="display: hidden;">
+        <form id="createForm" method="post" style="display: none;">
             <input type="hidden" name="action" value="create">
             <?php foreach ($fields as $field_name): ?>
                 <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
@@ -185,7 +198,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
             <input type="submit" name="submit" value="Enter">
         </form>
 
-        <form id="updateForm" method="post" style="display: hidden;">
+        <form id="updateForm" method="post" style="display: none;">
             <input type="hidden" name="action" value="update">
             <?php foreach ($fields as $field_name): ?>
                 <input type="hidden" name="<?php echo 'old_' . $field_name ?>" value="">
