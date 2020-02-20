@@ -142,6 +142,13 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                     </div>
                                     <div class="row">
                                         <div class="sixteen wide column">
+                                            <div class="ui basic icon buttons">
+                                                <button class="ui action button">New Row</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="sixteen wide column">
                                             <table class="ui center aligned table" data-table="<?php echo $current_table ?>">
                                                 <thead class="full-width">
                                                     <tr>
@@ -152,6 +159,20 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
+                                                    <tr style="display: none;">
+                                                        <?php foreach ($fields as $field_name): ?>
+                                                            <td>
+                                                                <div class="ui fluid input">
+                                                                    <input type="text" name="" value="" placeholder="<?php echo $field_name ?>">
+                                                                </div>
+                                                            </td>
+                                                        <?php endforeach ?>
+                                                        <td>
+                                                            <div class="ui basic icon buttons">
+                                                                <button class="ui action button">Enter</button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                                     <?php foreach ($data as $row => $row_value): ?>
                                                         <tr data-row="<?php echo $row ?>">
                                                             <?php foreach ($row_value as $col => $col_value): ?>
@@ -159,8 +180,10 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                             <?php endforeach ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <button class="ui action button" onclick="edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
-                                                                    <button class="ui action button" onclick="remove('<?php echo $row ?>')"><i class="trash icon"></i></button>
+                                                                    <button class="ui action button"><i class="cancel icon"></i></button>
+                                                                    <button class="ui action button"><i class="save icon"></i></button>
+                                                                    <!--<button class="ui action button" onclick="edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
+                                                                    <button class="ui action button" onclick="remove('<?php echo $row ?>')"><i class="trash icon"></i></button>-->
                                                                 </div>
                                                             </td>
                                                         </tr>
