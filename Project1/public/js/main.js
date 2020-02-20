@@ -1,9 +1,4 @@
 
-$('body').toast({
-    class: 'error',
-    message: 'An error occured !'
-});
-
 function push() {
     $('.ui.sidebar').sidebar('toggle');
 }
@@ -48,7 +43,24 @@ function enable(css) {
     $(css).removeClass('disabled');
 }
 
+function check_error() {
+    let error_element = $("#error");
+    let error_type = error_element.attr("value");
+    let error_message = error_element.text();
+    if (error_type && error_message) {
+        $('body').toast({
+            class: 'error',
+            position: 'bottom center',
+            displayTime: 5 * 1000,
+            closeIcon: true,
+            message: error_message
+        });
+    }
+}
+
 $(function() {
+    check_error();
+    
     $("table tbody tr[data-row]").each(function(index1, value1) {
         $(this).find("td[data-value]").each(function(index2, value2) {
             console.log(`${index2} | ${$(this).text()}`);

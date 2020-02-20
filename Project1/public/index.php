@@ -32,6 +32,7 @@ $current_table = '';
 $tables = array();
 $fields = array();
 $data = array(); // 2D array
+$error = array('type' => '', 'message' => '');
 
 // Get all table names in alphabetical order
 $query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '$db_name' ORDER BY TABLE_NAME ASC";
@@ -71,7 +72,8 @@ if (isset($_POST['submit'])) {
                         header('Location: index.php');
                         exit();
                     } else {
-                        echo 'Something went wrong!';
+                        $error['type'] = 'sql';
+                        $error['message'] = 'Something went wrong when creating!';
                     }
                 }
                 mysqli_stmt_close($stmt);
@@ -95,6 +97,10 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
     $data[] = $row;
 }
 
+// TODO: testing
+//$error['type'] = 'sql';
+//$error['message'] = 'Something went wrong when creating!';
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -107,7 +113,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         <link rel="stylesheet" type="text/css" href="css/styles.css">
     </head>
     <body>
-        <data value="testing" hidden>Testing</data>
+        <data id="error" value="<?php echo $error['type'] ?>" hidden><?php echo $error['message'] ?></data>
         <div class="ui inverted left vertical sidebar menu sidebar">
             <?php foreach ($tables as $table): ?>
                 <a class="item <?php if ($table === $current_table) echo 'active' ?>" href="?table=<?php echo $table ?>"><?php echo ucwords(str_replace("_", " ", $table)) ?></a>
