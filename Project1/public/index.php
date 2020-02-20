@@ -7,7 +7,7 @@
 session_start();
 
 // Load configurations
-require_once('../config/config.php');
+require_once('../config/database.php');
 
 // Attempt to connect to the database, and if not, then display an error message
 $conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
@@ -25,12 +25,13 @@ if (isset($param_username) && isset($param_password)) {
 }
 
 $param_table = filter_input(INPUT_GET, 'table');
+$param_order = filter_input(INPUT_GET, 'order');
 
 // We need to populate these variables
 $current_table = '';
 $tables = array();
 $fields = array();
-$data = array(); // Will be a multidimensional array
+$data = array(); // 2D array
 
 // Get all table names in alphabetical order
 $query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '$db_name' ORDER BY TABLE_NAME ASC";
@@ -52,26 +53,43 @@ while ($row = mysqli_fetch_array($result)) {
     $fields[] = $row[0];
 }
 
+// Before getting the current table's data, check if created, updated, or deleted
 if (isset($_POST['submit'])) {
     if (isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'create':
-                foreach ($fields as $field_name) {
+                echo 'create<br>';
+                echo '<pre>' . var_dump($_POST) . '</pre>';
+                $sql = 'INSERT INTO course (course_number, course_name, credit_hours, department) VALUES (?, ?, ?, ?)';
+                if ($stmt = mysqli_prepare($conn, $sql)) {
+                    mysqli_stmt_bind_param($stmt, "ssss", $course_number, $course_name, $credit_hours, $department);
+                    $course_number = $_POST['course_number'];
+                    $course_name = $_POST['course_name'];
+                    $credit_hours = $_POST['credit_hours'];
+                    $department = $_POST['department'];
+                    if (mysqli_stmt_execute($stmt)) {
+                        header('Location: index.php');
+                        exit();
+                    } else {
+                        echo 'Something went wrong!';
+                    }
                 }
-
-                //$sql = "INSERT INTO $current_table (" . implode(', ', $fields) . ') VALUES (' . ;
-                //echo $sql;
+                mysqli_stmt_close($stmt);
                 break;
             case 'update':
+                echo 'update<br>';
+                echo '<pre>' . var_dump($_POST) . '</pre>';
                 break;
             case 'delete':
+                echo 'delete<br>';
+                echo '<pre>' . var_dump($_POST) . '</pre>';
                 break;
         }
     }
 }
 
 // Get current table's data
-$query = "SELECT * FROM $current_table";
+$query = "SELECT * FROM $current_table" . (isset($param_order) ? " ORDER BY $param_order" : '');
 $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
     $data[] = $row;
@@ -79,7 +97,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -89,6 +107,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         <link rel="stylesheet" type="text/css" href="css/styles.css">
     </head>
     <body>
+        <data value="testing" hidden>Testing</data>
         <div class="ui inverted left vertical sidebar menu sidebar">
             <?php foreach ($tables as $table): ?>
                 <a class="item <?php if ($table === $current_table) echo 'active' ?>" href="?table=<?php echo $table ?>"><?php echo ucwords(str_replace("_", " ", $table)) ?></a>
@@ -117,15 +136,15 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($data as $row): ?>
-                                            <tr>
-                                                <?php foreach ($row as $col => $col_value): ?>
+                                        <?php foreach ($data as $row => $row_value): ?>
+                                            <tr data-row="<?php echo $row ?>">
+                                                <?php foreach ($row_value as $col => $col_value): ?>
                                                     <td data-value="<?php $col_value ?>"><?php echo $col_value ?></td>
                                                 <?php endforeach ?>
                                                 <td>
                                                     <div class="ui basic icon buttons">
-                                                        <button class="ui action button" onclick="edit('<?php echo 'table=' . $current_table . '&' . http_build_query($row) ?>')"><i class="edit icon"></i></button>
-                                                        <button class="ui action button"><i class="trash icon"></i></button>
+                                                        <button class="ui action button" onclick="edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
+                                                        <button class="ui action button" onclick="remove('<?php echo $row ?>')"><i class="trash icon"></i></button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -136,8 +155,8 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                             <?php foreach ($fields as $field_name): ?>
                                                 <td>
                                                     <div class="ui basic icon buttons">
-                                                        <button class="ui sort button"><i class="fitted up arrow icon"></i></button>
-                                                        <button class="ui sort button"><i class="fitted down arrow icon"></i></button>
+                                                        <button class="ui sort button" onclick="sort('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+                                                        <button class="ui sort button" onclick="sort('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
                                                     </div>
                                                 </td>
                                             <?php endforeach ?>
@@ -152,52 +171,29 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
             </div>
         </div>
 
-        <!-- Check if the form has been submitted -->
-        <?php if (isset($_POST['submit'])): ?>
-
-            <!-- Check if an action exists -->
-            <?php if (isset ($_POST['action'])): ?>
-                
-                <!-- Check if is a create action -->
-                <?php if ($_POST['action'] === 'create'): ?>
-
-                    <!-- Provide a form for creating -->
-                    <form method="post">
-                        <?php foreach ($fields as $field_name) ?>
-                            <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
-                        <?php ?>
-                        <input type="submit" name="submit" value="Enter">
-                    </form>
-
-                <?php endif ?>
-
-                <!-- Check if is an update action -->
-                <?php if ($_POST['action'] === 'update'): ?>
-
-                    <!-- Provide a form for updating -->
-                    <form method="post">
-                    </form>
-
-                <?php endif ?>
-
-                <!-- Check if is a delete action -->
-                <?php if ($_POST['action'] === 'delete'): ?>
-
-                    <!-- Provide a form for deleting -->
-                    <form method="post">
-                    </form>
-
-                <?php endif ?>
-
-            <?php endif ?>
-
-        <?php endif ?>
-
         <form id="createForm" method="post" style="display: hidden;">
+            <input type="hidden" name="action" value="create">
             <?php foreach ($fields as $field_name): ?>
                 <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
             <?php endforeach ?>
             <input type="submit" name="submit" value="Enter">
+        </form>
+
+        <form id="updateForm" method="post" style="display: hidden;">
+            <input type="hidden" name="action" value="update">
+            <?php foreach ($fields as $field_name): ?>
+                <input type="hidden" name="<?php echo 'old_' . $field_name ?>" value="">
+                <input type="text" name="<?php echo 'new_' . $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
+            <?php endforeach ?>
+            <input type="submit" name="submit" value="Update">
+        </form>
+
+        <form id="deleteForm" method="post" style="display: none;">
+            <input type="hidden" name="action" value="delete">
+            <?php foreach ($fields as $field_name): ?>
+                <input type="hidden" name="$field_name" value="">
+            <?php endforeach ?>
+            <input type="submit" name="submit">
         </form>
 
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>

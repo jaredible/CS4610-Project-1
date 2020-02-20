@@ -1,18 +1,21 @@
-var urlParams = new URLSearchParams(window.location.search);
 
-if (urlParams.has('table')) {
-    console.log('table: ' + urlParams.get('table'));
-}
-if (urlParams.has('edit')) {
-    console.log('edit: ' + urlParams.get('edit'));
-}
+$('body').toast({
+    class: 'error',
+    message: 'An error occured !'
+});
 
 function push() {
     $('.ui.sidebar').sidebar('toggle');
 }
 
-function sort() {
-    
+function sort(field, order) {
+    let url = new URL(window.location.href);
+    let query_string = url.search;
+    let search_params = new URLSearchParams(query_string);
+    search_params.set('order', `${field} ${order}`);
+    url.search = search_params.toString();
+    let new_url = url.toString();
+    window.location.href = new_url;
 }
 
 function create() {
@@ -21,13 +24,20 @@ function create() {
     // TODO: stop editing current rows
 }
 
-function edit(query) {
-    console.log(query);
-    window.location.href = "?" + query;
+function edit(rowId) {
+    //console.log(query);
+    var editRow = $(`table tbody tr[data-row='${rowId}']`);
+    console.log(editRow);
+    var updateForm = $("#updateForm");
+    editRow.find("td[data-value]").each(function(index, value) {
+        console.log(`${index}: ${$(this).text()}`);
+        console.log($(this).text());
+    });
+    //window.location.href = "?" + query;
 }
 
-function remove(key) {
-    console.log(key);
+function remove(rowId) {
+    console.log(rowId);
 }
 
 function disable(css) {
@@ -39,9 +49,10 @@ function enable(css) {
 }
 
 $(function() {
-    $("table tbody").find("tr").each(function(key, val) {
-        $(this).find("td.data").each(function(key, val) {
-            console.log(val.innerHTML);
+    $("table tbody tr[data-row]").each(function(index1, value1) {
+        $(this).find("td[data-value]").each(function(index2, value2) {
+            console.log(`${index2} | ${$(this).text()}`);
         });
+        console.log('----------');
     });
 });
