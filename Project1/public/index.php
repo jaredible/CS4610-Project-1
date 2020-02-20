@@ -60,8 +60,6 @@ if (isset($_POST['submit'])) {
     if (isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'create':
-                echo 'create<br>';
-                echo '<pre>' . var_dump($_POST) . '</pre>';
                 $sql = 'INSERT INTO course (course_number, course_name, credit_hours, department) VALUES (?, ?, ?, ?)';
                 if ($stmt = mysqli_prepare($conn, $sql)) {
                     mysqli_stmt_bind_param($stmt, "ssss", $course_number, $course_name, $credit_hours, $department);
@@ -73,7 +71,7 @@ if (isset($_POST['submit'])) {
                         header('Location: index.php');
                         exit();
                     } else {
-                        $error['type'] = 'sql';
+                        $error['type'] = 'sql create';
                         $error['message'] = 'Something went wrong when creating!';
                     }
                 }
@@ -84,8 +82,22 @@ if (isset($_POST['submit'])) {
                 echo '<pre>' . var_dump($_POST) . '</pre>';
                 break;
             case 'delete':
-                echo 'delete<br>';
-                echo '<pre>' . var_dump($_POST) . '</pre>';
+                $sql = 'DELETE FROM course WHERE course_number = ? AND course_name = ? AND credit_hours = ? AND department = ?';
+                if ($stmt = mysqli_prepare($conn, $sql)) {
+                    mysqli_stmt_bind_param($stmt, "ssss", $course_number, $course_name, $credit_hours, $department);
+                    $course_number = $_POST['course_number'];
+                    $course_name = $_POST['course_name'];
+                    $credit_hours = $_POST['credit_hours'];
+                    $department = $_POST['department'];
+                    if (mysqli_stmt_execute($stmt)) {
+                        header('Location: index.php');
+                        exit();
+                    } else {
+                        $error['type'] = 'sql delete';
+                        $error['message'] = 'Something went wrong when deleting!';
+                    }
+                }
+                mysqli_stmt_close($stmt);
                 break;
         }
     }
@@ -114,9 +126,9 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         <link rel="stylesheet" type="text/css" href="css/styles.css">
     </head>
     <body>
-        <data id="error" value="<?php echo $error['type'] ?>" hidden><?php echo $error['message'] ?></data>
         <div class="context">
-            <div class="ui top attached segment" style="padding: 0; border: 0;">
+            <data id="error" value="<?php echo $error['type'] ?>" hidden><?php echo $error['message'] ?></data>
+            <div class="ui top attached segment" style="padding: 0; border: 0; margin-top: 0;">
                 <div class="ui top attached menu">
                     <a class="item"><i class="sidebar icon"></i>Tables</a>
                     <a class="item" href="index.php"><i class="home icon"></i>Home</a>
@@ -142,8 +154,8 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                     </div>
                                     <div class="row">
                                         <div class="sixteen wide column">
-                                            <div class="ui basic icon buttons">
-                                                <button class="ui action button">New Row</button>
+                                            <div class="ui basic right floated buttons">
+                                                <button class="ui button"><i class="plus icon"></i>New Row</button>
                                             </div>
                                         </div>
                                     </div>
@@ -153,7 +165,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                 <thead class="full-width">
                                                     <tr>
                                                         <?php foreach ($fields as $field_name): ?>
-                                                            <th data-field="<?php echo $field_name ?>"><?php echo $field_name ?></th>
+                                                            <th data-field="<?php echo $field_name ?>"><?php echo ucwords(str_replace("_", " ", $field_name)) ?></th>
                                                         <?php endforeach ?>
                                                         <th class="collapsing">Action</th>
                                                     </tr>
@@ -169,21 +181,21 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                         <?php endforeach ?>
                                                         <td>
                                                             <div class="ui basic icon buttons">
-                                                                <button class="ui action button">Enter</button>
+                                                                <button class="ui button">Enter</button>
                                                             </div>
                                                         </td>
                                                     </tr>
                                                     <?php foreach ($data as $row => $row_value): ?>
                                                         <tr data-row="<?php echo $row ?>">
                                                             <?php foreach ($row_value as $col => $col_value): ?>
-                                                                <td data-value="<?php $col_value ?>"><?php echo $col_value ?></td>
+                                                                <td class="data" data-field="<?php echo $col ?>" data-value="<?php echo $col_value ?>"><?php echo $col_value ?></td>
                                                             <?php endforeach ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <button class="ui action button"><i class="cancel icon"></i></button>
-                                                                    <button class="ui action button"><i class="save icon"></i></button>
-                                                                    <!--<button class="ui action button" onclick="edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
-                                                                    <button class="ui action button" onclick="remove('<?php echo $row ?>')"><i class="trash icon"></i></button>-->
+                                                                    <!--<button class="ui button"><i class="cancel icon"></i></button>
+                                                                    <button class="ui button"><i class="save icon"></i></button>-->
+                                                                    <button class="ui button" onclick="edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
+                                                                    <button class="ui button" onclick="remove('<?php echo $row ?>')"><i class="trash icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -194,8 +206,8 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                         <?php foreach ($fields as $field_name): ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <button class="ui sort button" onclick="order('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
-                                                                    <button class="ui sort button" onclick="order('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
+                                                                    <button class="ui button" onclick="order('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+                                                                    <button class="ui button" onclick="order('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         <?php endforeach ?>
@@ -233,7 +245,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         <form id="deleteForm" method="post" style="display: none;">
             <input type="hidden" name="action" value="delete">
             <?php foreach ($fields as $field_name): ?>
-                <input type="hidden" name="$field_name" value="">
+                <input class="data" type="hidden" name="<?php echo $field_name ?>" value="">
             <?php endforeach ?>
             <input type="submit" name="submit">
         </form>

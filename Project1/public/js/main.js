@@ -16,7 +16,6 @@ function create() {
 }
 
 function edit(rowId) {
-    //console.log(query);
     var editRow = $(`table tbody tr[data-row='${rowId}']`);
     console.log(editRow);
     var updateForm = $("#updateForm");
@@ -24,11 +23,21 @@ function edit(rowId) {
         console.log(`${index}: ${$(this).text()}`);
         console.log($(this).text());
     });
-    //window.location.href = "?" + query;
 }
 
 function remove(rowId) {
     console.log(rowId);
+    let updateRow = $(`table tbody tr[data-row='${rowId}']`);
+    let updateForm = $("#deleteForm");
+    updateForm.find("input.data").each(function(index, value) {
+        let field_name = $(this).attr("name");
+        $(this).val(updateRow.find(`td[data-field='${field_name}']`).attr("data-value"));
+    });
+    $(`table tbody tr[data-row='${rowId}']`).find("td.data").each(function(index, value) {
+        console.log(`${$(this).attr("data-field")}=${$(this).attr("data-value")}`);
+        //console.log(`index: ${index}, value: ${$(this).text()}`);
+        //console.log($(this).text());
+    });
 }
 
 function disable(css) {
@@ -60,11 +69,4 @@ $(function() {
     $(".context .ui.sidebar").sidebar({
         context: $(".context .bottom.segment")
     }).sidebar("attach events", ".context .menu .item:first");
-    
-    $("table tbody tr[data-row]").each(function(index1, value1) {
-        $(this).find("td[data-value]").each(function(index2, value2) {
-            console.log(`${index2} | ${$(this).text()}`);
-        });
-        console.log('----------');
-    });
 });
