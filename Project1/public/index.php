@@ -126,7 +126,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                         <!--<a class="item"><i class="help icon"></i>Help</a>-->
                     </div>
                 </div>
-                <div class="ui bottom attached segment pushable">
+                <div class="ui bottom attached segment pushable" style="margin-bottom: 0;">
                     <div class="ui inverted labeled icon left inline vertical sidebar menu">
                         <?php foreach ($tables as $table): ?>
                             <a class="item <?php if ($table === $current_table) echo 'active' ?>" href="?table=<?php echo $table ?>"><i class="table icon"></i><?php echo ucwords(str_replace("_", " ", $table)) ?></a>

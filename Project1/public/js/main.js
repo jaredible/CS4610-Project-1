@@ -1,4 +1,42 @@
 
+class Table {
+
+    constructor(table_id) {
+        this.table_id = table_id;
+    }
+
+    order_by(field, order) {
+    }
+
+    create_enter() {
+        $(`#${this.table_id} tbody tr:first`).attr("style", "");
+    }
+
+    create_submit() {
+    }
+
+    create_leave() {
+        let create_row = $(`#${this.table_id}`);
+        create_row.find("tbody tr:first").attr("style", "display: none !important;");
+        createRow.find("td.input input").each(function(index, value) {
+            $(this).val("");
+        });
+    }
+
+    edit_enter() {
+    }
+
+    edit_submit() {
+    }
+
+    edit_leave() {
+    }
+
+}
+
+const test = new Table("table");
+test.create_enter();
+
 function order(field, order) {
     let url = new URL(window.location.href);
     let query_string = url.search;
