@@ -40,10 +40,10 @@ if (!isset($current_table)) {
 }
 
 // Get current table's column names
-$query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table'";
+$query = "SELECT COLUMN_NAME, ORDINAL_POSITION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table'";
 $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_array($result)) {
-    $fields[] = $row[0];
+    $fields[] = $row;
 }
 
 // Before getting the current table's data, check if created, updated, or deleted
@@ -105,9 +105,6 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
     $data[] = $row;
 }
 
-// TODO: testing
-//$error = 'Something went wrong when creating!';
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -116,7 +113,9 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
         <title>University Portal</title>
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.2/dist/semantic.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/introjs.min.css">
         <link rel="stylesheet" type="text/css" href="css/styles.css">
     </head>
     <body>
@@ -127,7 +126,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     <a class="item" href="index.php"><i class="home icon"></i>Home</a>
                     <div class="right menu">
                         <a class="item" href="login.php"><i class="sign <?php echo 0 === 1 ? 'out' : 'in' ?> icon"></i><?php echo 'Log ' . (0 === 1 ? 'Out' : 'In') ?></a>
-                        <a class="item"><i class="help icon"></i>Help</a>
+                        <a class="item" onclick="introJs().start()"><i class="help icon"></i>Help</a>
                     </div>
                 </div>
                 <div class="ui bottom attached segment pushable" style="margin-bottom: 0;">
@@ -138,15 +137,12 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                     </div>
                     <div class="pusher">
                         <div class="ui container">
+                            <h1 class="ui header" data-step="1" data-intro="Testing1!" style="margin-top: 1.5rem; margin-bottom: 1.5rem; text-align: center !important;"><?php echo ucwords(str_replace("_", " ", $current_table)) ?></h1>
                             <div class="ui segment" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
                                 <div class="ui stackable grid">
-                                    <div class="row">
+                                    <div class="row" style="padding-bottom: 0;">
                                         <div class="sixteen wide column">
-                                            <h2 class="ui dividing header"><?php echo ucwords(str_replace("_", " ", $current_table)) ?></h2>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="sixteen wide column">
+                                            <h3 class="ui left floated header" data-step="2" data-intro="Testing2!" style="position: absolute; bottom: 0; margin-bottom: 0;">Table data</h3>
                                             <div class="ui basic right floated buttons">
                                                 <button class="ui button" onclick="data_table.create_enter()"><i class="plus icon"></i>New Row</button>
                                             </div>
@@ -157,18 +153,18 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                             <table id="data-table" class="ui center aligned table" data-table="<?php echo $current_table ?>">
                                                 <thead class="full-width">
                                                     <tr>
-                                                        <?php foreach ($fields as $field_name): ?>
-                                                            <th data-field="<?php echo $field_name ?>"><?php echo ucwords(str_replace("_", " ", $field_name)) ?></th>
+                                                        <?php foreach ($fields as $field => $field_value): ?>
+                                                            <th data-field="<?php echo $field_value['COLUMN_NAME'] ?>"><?php echo ucwords(str_replace("_", " ", $field_value['COLUMN_NAME'])) ?></th>
                                                         <?php endforeach ?>
                                                         <th class="collapsing">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr style="display: none !important;">
-                                                        <?php foreach ($fields as $field_name): ?>
+                                                        <?php foreach ($fields as $field => $field_value): ?>
                                                             <td class="input">
                                                                 <div class="ui fluid input">
-                                                                    <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
+                                                                    <input type="text" name="<?php echo $field_value['COLUMN_NAME'] ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_value['COLUMN_NAME'])) ?>">
                                                                 </div>
                                                             </td>
                                                         <?php endforeach ?>
@@ -180,7 +176,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                         </td>
                                                     </tr>
                                                     <?php foreach ($data as $row => $row_value): ?>
-                                                        <tr data-row="<?php echo $row ?>">
+                                                        <tr data-row="<?php echo md5(implode(',', $row_value)) ?>">
                                                             <?php foreach ($row_value as $col => $col_value): ?>
                                                                 <td class="data" data-field="<?php echo $col ?>" data-value="<?php echo $col_value ?>">
                                                                     <data><?php echo $col_value ?></data>
@@ -190,8 +186,8 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                                 <div class="ui basic icon buttons">
                                                                     <button class="ui button data-table-update-leave-button" onclick="data_table.update_leave()" style="display: none !important;"><i class="cancel icon"></i></button>
                                                                     <button class="ui button data-table-update-submit-button" onclick="data_table.update_submit()" style="display: none !important;"><i class="save icon"></i></button>
-                                                                    <button class="ui button data-table-update-enter-button" onclick="data_table.update_enter('<?php echo $row ?>')" style=""><i class="edit icon"></i></button>
-                                                                    <button class="ui button data-table-delete-submit-button" onclick="data_table.delete_submit('<?php echo $row ?>')" style=""><i class="trash icon"></i></button>
+                                                                    <button class="ui button data-table-update-enter-button" onclick="data_table.update_enter('<?php echo md5(implode(',', $row_value)) ?>')" style=""><i class="edit icon"></i></button>
+                                                                    <button class="ui button data-table-delete-submit-button" onclick="data_table.delete_submit('<?php echo md5(implode(',', $row_value)) ?>')" style=""><i class="trash icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -199,11 +195,11 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                 </tbody>
                                                 <tfoot>
                                                     <tr>
-                                                        <?php foreach ($fields as $field_name): ?>
+                                                        <?php foreach ($fields as $field => $field_value): ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <button class="ui button data-table-order-by-asc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
-                                                                    <button class="ui button data-table-order-by-desc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
+                                                                    <button class="ui button data-table-order-by-asc-button" onclick="data_table.order_by('<?php echo $field_value['COLUMN_NAME'] ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+                                                                    <button class="ui button data-table-order-by-desc-button" onclick="data_table.order_by('<?php echo $field_value['COLUMN_NAME'] ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         <?php endforeach ?>
@@ -213,9 +209,48 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                             </table>
                                         </div>
                                     </div>
+                                    <div class="row" style="padding-bottom: 0;">
+                                        <div class="sixteen wide column">
+                                            <h3 class="ui left floated header" data-step="3" data-intro="Testing3!" style="position: absolute; bottom: 0; margin-bottom: 0;">Table structure</h3>
+                                            <div class="ui basic right floated buttons">
+                                                <button class="ui button" onclick="structure_table.create_enter()"><i class="plus icon"></i>New Column</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="sixteen wide column">
+                                            <table id="structure-table" class="ui center aligned table" data-table="<?php echo $current_table ?>">
+                                                <thead class="full-width">
+                                                    <tr>
+                                                        <?php for ($i = 0; $i < 6; $i++): ?>
+                                                            <th><?php echo "Column $i" ?></th>
+                                                        <?php endfor ?>
+                                                        <th class="collapsing">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php for ($i = 0; $i < 6; $i++): ?>
+                                                        <tr>
+                                                            <?php for ($j = 0; $j < 6; $j++): ?>
+                                                                <td><?php echo "Cell $i, $j" ?></td>
+                                                            <?php endfor ?>
+                                                            <td>
+                                                                <div class="ui basic icon buttons">
+                                                                    <button class="ui button"><i class="edit icon"></i></button>
+                                                                    <button class="ui button"><i class="trash icon"></i></button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endfor ?>
+                                                </tbody>
+                                                <tfoot></tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <footer class="ui center aligned black footer segment">Made with <i class="red fitted heart icon"></i> by <a href="https://jaredible.net" target="_blank">Jaredible</a></footer>
                     </div>
                 </div>
             </div>
@@ -223,10 +258,11 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 
         <form id="action-form" method="post" style="display: none !important;"></form>
 
-        <data id="error" value="<?php echo $error ?>" hidden><?php echo $error ?></data>
+        <data id="error" value="<?php echo $error ?>" style="display: none !important;"><?php echo $error ?></data>
 
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.2/dist/semantic.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/intro.min.js"></script>
         <script src="js/main.js"></script>
     </body>
 </html>

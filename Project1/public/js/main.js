@@ -184,9 +184,6 @@ class Table {
 
 }
 
-const data_table = new Table("data-table", "data");
-const structure_table = new Table("structure-table", "structure");
-
 function init_sidebar() {
     $(".context .ui.sidebar").sidebar({
         context: $(".context .bottom.segment")
@@ -213,6 +210,9 @@ function to_title_case(str) {
         return word.replace(word[0], word[0].toUpperCase());
     });
 }
+
+const data_table = new Table("data-table", "data");
+const structure_table = new Table("structure-table", "structure");
 
 $(function() {
     init_sidebar();
