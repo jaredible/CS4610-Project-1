@@ -1,5 +1,5 @@
 RewriteEngine On
-RewriteBase /umsl-cmpsci-4610/Project1/
+RewriteBase /CS4610-Project-1/
 
 RewriteCond %{THE_REQUEST} /public/([^\s?]*) [NC]
 RewriteRule ^ %1 [L,NE,R=302]
