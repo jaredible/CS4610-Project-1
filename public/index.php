@@ -40,19 +40,20 @@ if (!isset($current_table)) {
 }
 
 // Get current table's column names
-$query = "SELECT COLUMN_NAME, ORDINAL_POSITION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table'";
+$query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table'";
 $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_array($result)) {
-    $fields[] = $row;
+    $fields[] = $row[0];
 }
 
 // Before getting the current table's data, check if created, updated, or deleted
 if (isset($_POST['table-action'])) {
     switch ($_POST['table-action']) {
         case 'create':
-            $sql = 'INSERT INTO course (course_number, course_name, credit_hours, department) VALUES (?, ?, ?, ?)';
+            $sql = "INSERT INTO $current_table (" . implode(', ', $fields) . ') VALUES (?, ?, ?, ?)';
+            echo $sql;
             if ($stmt = mysqli_prepare($conn, $sql)) {
-                mysqli_stmt_bind_param($stmt, "ssss", $course_number, $course_name, $credit_hours, $department);
+                mysqli_stmt_bind_param($stmt, "ssss", ...array("69", "69", "69", "69"));
                 $course_number = $_POST['course_number'];
                 $course_name = $_POST['course_name'];
                 $credit_hours = $_POST['credit_hours'];
@@ -153,18 +154,18 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                             <table id="data-table" class="ui center aligned table" data-table="<?php echo $current_table ?>">
                                                 <thead class="full-width">
                                                     <tr>
-                                                        <?php foreach ($fields as $field => $field_value): ?>
-                                                            <th data-field="<?php echo $field_value['COLUMN_NAME'] ?>"><?php echo ucwords(str_replace("_", " ", $field_value['COLUMN_NAME'])) ?></th>
+                                                        <?php foreach ($fields as $field_name): ?>
+                                                            <th data-field="<?php echo $field_name ?>"><?php echo ucwords(str_replace("_", " ", $field_name)) ?></th>
                                                         <?php endforeach ?>
                                                         <th class="collapsing">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr style="display: none !important;">
-                                                        <?php foreach ($fields as $field => $field_value): ?>
+                                                        <?php foreach ($fields as $field_name): ?>
                                                             <td class="input">
                                                                 <div class="ui fluid input">
-                                                                    <input type="text" name="<?php echo $field_value['COLUMN_NAME'] ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_value['COLUMN_NAME'])) ?>">
+                                                                    <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
                                                                 </div>
                                                             </td>
                                                         <?php endforeach ?>
@@ -195,11 +196,11 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                 </tbody>
                                                 <tfoot>
                                                     <tr>
-                                                        <?php foreach ($fields as $field => $field_value): ?>
+                                                        <?php foreach ($fields as $field_name): ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <button class="ui button data-table-order-by-asc-button" onclick="data_table.order_by('<?php echo $field_value['COLUMN_NAME'] ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
-                                                                    <button class="ui button data-table-order-by-desc-button" onclick="data_table.order_by('<?php echo $field_value['COLUMN_NAME'] ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
+                                                                    <button class="ui button data-table-order-by-asc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+                                                                    <button class="ui button data-table-order-by-desc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         <?php endforeach ?>
