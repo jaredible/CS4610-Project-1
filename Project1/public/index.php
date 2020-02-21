@@ -17,14 +17,14 @@ if (!$conn) {
 }
 
 $param_table = filter_input(INPUT_GET, 'table');
-$param_order = filter_input(INPUT_GET, 'order');
+$param_order = filter_input(INPUT_GET, 'orderby');
 
 // We need to populate these variables
 $current_table = '';
 $tables = array();
 $fields = array();
 $data = array(); // 2D array
-$error = array('type' => '', 'message' => '');
+$error = '';
 
 // Get all table names in alphabetical order
 $query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '$db_name' ORDER BY TABLE_NAME ASC";
@@ -47,8 +47,8 @@ while ($row = mysqli_fetch_array($result)) {
 }
 
 // Before getting the current table's data, check if created, updated, or deleted
-if (isset($_POST['action'])) {
-    switch ($_POST['action']) {
+if (isset($_POST['table-action'])) {
+    switch ($_POST['table-action']) {
         case 'create':
             $sql = 'INSERT INTO course (course_number, course_name, credit_hours, department) VALUES (?, ?, ?, ?)';
             if ($stmt = mysqli_prepare($conn, $sql)) {
@@ -57,19 +57,29 @@ if (isset($_POST['action'])) {
                 $course_name = $_POST['course_name'];
                 $credit_hours = $_POST['credit_hours'];
                 $department = $_POST['department'];
-                if (mysqli_stmt_execute($stmt)) {
-                    header('Location: index.php');
-                    exit();
-                } else {
-                    $error['type'] = 'sql create';
-                    $error['message'] = mysqli_error($conn);
+                if (!mysqli_stmt_execute($stmt)) {
+                    $error = mysqli_error($conn);
                 }
             }
             mysqli_stmt_close($stmt);
             break;
         case 'update':
-            echo 'update<br>';
-            echo '<pre>' . var_dump($_POST) . '</pre>';
+            $sql = 'UPDATE course SET course_number = ?, course_name = ?, credit_hours = ?, department = ? WHERE course_number = ? AND course_name = ? AND credit_hours = ? AND department = ?';
+            if ($stmt = mysqli_prepare($conn, $sql)) {
+                mysqli_stmt_bind_param($stmt, "ssssssss", $new_course_number, $new_course_name, $new_credit_hours, $new_department, $old_course_number, $old_course_name, $old_credit_hours, $old_department);
+                $new_course_number = $_POST['new_course_number'];
+                $new_course_name = $_POST['new_course_name'];
+                $new_credit_hours = $_POST['new_credit_hours'];
+                $new_department = $_POST['new_department'];
+                $old_course_number = $_POST['old_course_number'];
+                $old_course_name = $_POST['old_course_name'];
+                $old_credit_hours = $_POST['old_credit_hours'];
+                $old_department = $_POST['old_department'];
+                if (!mysqli_stmt_execute($stmt)) {
+                    $error = mysqli_error($conn);
+                }
+            }
+            mysqli_stmt_close($stmt);
             break;
         case 'delete':
             $sql = 'DELETE FROM course WHERE course_number = ? AND course_name = ? AND credit_hours = ? AND department = ?';
@@ -79,12 +89,8 @@ if (isset($_POST['action'])) {
                 $course_name = $_POST['course_name'];
                 $credit_hours = $_POST['credit_hours'];
                 $department = $_POST['department'];
-                if (mysqli_stmt_execute($stmt)) {
-                    header('Location: index.php');
-                    exit();
-                } else {
-                    $error['type'] = 'sql delete';
-                    $error['message'] = mysqli_error($conn);
+                if (!mysqli_stmt_execute($stmt)) {
+                    $error = mysqli_error($conn);
                 }
             }
             mysqli_stmt_close($stmt);
@@ -100,8 +106,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
 }
 
 // TODO: testing
-//$error['type'] = 'sql';
-//$error['message'] = 'Something went wrong when creating!';
+//$error = 'Something went wrong when creating!';
 
 ?>
 <!DOCTYPE html>
@@ -116,14 +121,13 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
     </head>
     <body>
         <div class="context">
-            <data id="error" value="<?php echo $error['type'] ?>" hidden><?php echo $error['message'] ?></data>
             <div class="ui top attached segment" style="padding: 0; border: 0; margin-top: 0;">
                 <div class="ui top attached menu">
                     <a class="item"><i class="sidebar icon"></i>Tables</a>
                     <a class="item" href="index.php"><i class="home icon"></i>Home</a>
                     <div class="right menu">
                         <a class="item" href="login.php"><i class="sign <?php echo 0 === 1 ? 'out' : 'in' ?> icon"></i><?php echo 'Log ' . (0 === 1 ? 'Out' : 'In') ?></a>
-                        <!--<a class="item"><i class="help icon"></i>Help</a>-->
+                        <a class="item"><i class="help icon"></i>Help</a>
                     </div>
                 </div>
                 <div class="ui bottom attached segment pushable" style="margin-bottom: 0;">
@@ -144,13 +148,13 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                     <div class="row">
                                         <div class="sixteen wide column">
                                             <div class="ui basic right floated buttons">
-                                                <button class="ui button" onclick="open_create()"><i class="plus icon"></i>New Row</button>
+                                                <button class="ui button" onclick="data_table.create_enter()"><i class="plus icon"></i>New Row</button>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="sixteen wide column">
-                                            <table class="ui center aligned table" data-table="<?php echo $current_table ?>">
+                                            <table id="data-table" class="ui center aligned table" data-table="<?php echo $current_table ?>">
                                                 <thead class="full-width">
                                                     <tr>
                                                         <?php foreach ($fields as $field_name): ?>
@@ -160,7 +164,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr style="display: none;">
+                                                    <tr style="display: none !important;">
                                                         <?php foreach ($fields as $field_name): ?>
                                                             <td class="input">
                                                                 <div class="ui fluid input">
@@ -170,22 +174,24 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                         <?php endforeach ?>
                                                         <td>
                                                             <div class="ui basic icon buttons">
-                                                                <button class="ui button" onclick="cancel_create()"><i class="cancel icon"></i></button>
-                                                                <button class="ui button" onclick="create()"><i class="save icon"></i></button>
+                                                                <button class="ui button data-table-create-leave-button" onclick="data_table.create_leave()"><i class="cancel icon"></i></button>
+                                                                <button class="ui button data-table-create-submit-button" onclick="data_table.create_submit()"><i class="save icon"></i></button>
                                                             </div>
                                                         </td>
                                                     </tr>
                                                     <?php foreach ($data as $row => $row_value): ?>
                                                         <tr data-row="<?php echo $row ?>">
                                                             <?php foreach ($row_value as $col => $col_value): ?>
-                                                                <td class="data" data-field="<?php echo $col ?>" data-value="<?php echo $col_value ?>"><?php echo $col_value ?></td>
+                                                                <td class="data" data-field="<?php echo $col ?>" data-value="<?php echo $col_value ?>">
+                                                                    <data><?php echo $col_value ?></data>
+                                                                </td>
                                                             <?php endforeach ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <!--<button class="ui button" onclick="cancel_edit()"><i class="cancel icon"></i></button>
-                                                                    <button class="ui button" onclick="send_edit()"><i class="save icon"></i></button>-->
-                                                                    <button class="ui button" onclick="open_edit('<?php echo $row ?>')"><i class="edit icon"></i></button>
-                                                                    <button class="ui button" onclick="send_remove('<?php echo $row ?>')"><i class="trash icon"></i></button>
+                                                                    <button class="ui button data-table-update-leave-button" onclick="data_table.update_leave()" style="display: none !important;"><i class="cancel icon"></i></button>
+                                                                    <button class="ui button data-table-update-submit-button" onclick="data_table.update_submit()" style="display: none !important;"><i class="save icon"></i></button>
+                                                                    <button class="ui button data-table-update-enter-button" onclick="data_table.update_enter('<?php echo $row ?>')" style=""><i class="edit icon"></i></button>
+                                                                    <button class="ui button data-table-delete-submit-button" onclick="data_table.delete_submit('<?php echo $row ?>')" style=""><i class="trash icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -196,8 +202,8 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                         <?php foreach ($fields as $field_name): ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <button class="ui button" onclick="order('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
-                                                                    <button class="ui button" onclick="order('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
+                                                                    <button class="ui button data-table-order-by-asc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+                                                                    <button class="ui button data-table-order-by-desc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         <?php endforeach ?>
@@ -215,28 +221,9 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
             </div>
         </div>
 
-        <form id="createForm" method="post" style="display: none;">
-            <input type="hidden" name="action" value="create">
-            <?php foreach ($fields as $field_name): ?>
-                <input class="data" type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
-            <?php endforeach ?>
-        </form>
+        <form id="action-form" method="post" style="display: none !important;"></form>
 
-        <form id="updateForm" method="post" style="display: none;">
-            <input type="hidden" name="action" value="update">
-            <?php foreach ($fields as $field_name): ?>
-                <input type="hidden" name="<?php echo 'old_' . $field_name ?>" value="">
-                <input type="text" name="<?php echo 'new_' . $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
-            <?php endforeach ?>
-            <input type="submit" name="submit" value="Update">
-        </form>
-
-        <form id="deleteForm" method="post" style="display: none;">
-            <input type="hidden" name="action" value="delete">
-            <?php foreach ($fields as $field_name): ?>
-                <input class="data" type="hidden" name="<?php echo $field_name ?>" value="">
-            <?php endforeach ?>
-        </form>
+        <data id="error" value="<?php echo $error ?>" hidden><?php echo $error ?></data>
 
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.2/dist/semantic.min.js"></script>
