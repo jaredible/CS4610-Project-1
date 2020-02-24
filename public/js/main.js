@@ -5,6 +5,7 @@ class Table {
     constructor(table_id, table_type) {
         this.table_id = table_id;
         this.table_type = table_type;
+
         this.table = $(`#${this.table_id}`);
         this.create_row = this.table.find("tbody tr:first");
         this.update_row = null;
@@ -24,6 +25,8 @@ class Table {
 
     create_enter() {
         this.create_row.attr("style", "");
+
+        disable_action_buttons_except(this.table, this.create_row);
     }
 
     create_submit() {
@@ -60,6 +63,8 @@ class Table {
         this.create_row.find("td.input input").each(function(index, value) {
             $(this).val("");
         });
+
+        enable_action_buttons();
     }
 
     update_enter(row_id) {
@@ -194,14 +199,18 @@ function check_and_display_error() {
     let error_message = error_element.val();
 
     if (error_message) {
-        $('body').toast({
-            class: 'error',
-            position: 'bottom center',
-            displayTime: 5 * 1000,
-            closeIcon: true,
-            message: error_message
-        });
+        display_error(error_message);
     }
+}
+
+function display_error(message) {
+    $('body').toast({
+        class: 'error',
+        position: 'bottom center',
+        displayTime: 5 * 1000,
+        closeIcon: true,
+        message: message
+    });
 }
 
 function to_title_case(str) {
@@ -224,6 +233,70 @@ function logout() {
     form_input_type.val("logout");
     action_form.append(form_input_type);
     action_form.submit();
+}
+
+function disable_action_buttons_except(table, row) {
+}
+
+function enable_action_buttons() {
+}
+
+function show_help() {
+    start_intro();
+}
+
+function start_intro() {
+    let intro = introJs();
+
+    let steps = [
+        {
+            intro: "<h3>Welcome to University Portal</h3><p>This is just a simple sentence.</p>",
+            tooltipClass: "min-width-250"
+        },
+        {
+            element: "#sidebar-menu-item",
+            intro: "Sidebar Menu Item"
+        },
+        {
+            element: "#login-menu-item",
+            intro: "Login Menu Item"
+        },
+        {
+            element: "#help-menu-item",
+            intro: "Help Menu Item"
+        },
+        {
+            element: "#data-table",
+            intro: "Data Table"
+        },
+        {
+            element: "#data-table-new-row-button",
+            intro: "Help Menu Item"
+        },
+        {
+            element: "#structure-table",
+            intro: "Structure Table"
+        },
+        {
+            element: "#data-table-new-column-button",
+            intro: "Help Menu Item"
+        }
+    ];
+
+    intro.setOptions({
+        showStepNumbers: false,
+        steps: steps
+    });
+
+    intro.onbeforechange(function() {
+        //console.log(this);
+        //if (this._currentStep === 1 || this._currentStep === 2) {
+        //    display_error("This is an error!");
+        //}
+        return true;
+    });
+
+    intro.start();
 }
 
 $(function() {

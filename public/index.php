@@ -1,9 +1,12 @@
+<!-- Supports PHP 5.6, although support for it has been discontinued since January 10, 2019. Developed using PHP 5.6.40. -->
 <?php
+// Creates a session or resumes the current one based on a session identifier passed via a GET or POST request, or passed via a cookie.
 session_start();
 
-// Load configurations
+// Load database configurations to be used in this script.
 require_once('../config/database.php');
 
+// This is here so that we know that there can be errors.
 $error = '';
 
 // Handle login/logout
@@ -12,21 +15,35 @@ if (isset($_POST['log-action'])) {
         case 'login':
             $username = $_POST['username'];
             $password = $_POST['password'];
-            if (isset($_POST['remember'])) {
-                $remember = $_POST['remember'];
-            }
 
             if ($username === $db_user && $password === $db_pass) {
-                $_SESSION['logged_in'] = true;
+                $_SESSION['logged-in'] = true;
+
+                if (isset($_POST['remember'])) {
+                    if ($_POST['remember'] === 'on') {
+                        setcookie('selector', $username, time() + 60 * 60 * 24);
+                        setcookie('validator', $password, time() + 60 * 60 * 24);
+                    }
+                }
             } else {
                 $error = 'Incorrect username or password!';
             }
+
             break;
         case 'logout':
-            if ($_SESSION['logged_in']) {
-                $_SESSION['logged_in'] = false;
+            if ($_SESSION['logged-in']) {
+                $_SESSION['logged-in'] = false;
+                setcookie('selector', '', time() - 60 * 60);
+                setcookie('validator', '', time() - 60 * 60);
             }
+
             break;
+    }
+} else {
+    if(isset($_COOKIE['selector']) && isset($_COOKIE['validator'])) {
+        if ($_COOKIE['selector'] === $db_user && $_COOKIE['validator'] === $db_pass) {
+            $_SESSION['logged-in'] = true;
+        }
     }
 }
 
@@ -185,32 +202,38 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         <link rel="stylesheet" type="text/css" href="css/styles.css">
     </head>
     <body>
+
         <div class="context">
+
             <div class="ui top attached segment" style="padding: 0; border: 0; margin-top: 0;">
+            
+                <!-- -->
                 <div class="ui top attached menu">
-                    <a class="item"><i class="sidebar icon"></i>Tables</a>
-                    <!--<a class="item" href="index.php"><i class="home icon"></i>Home</a>-->
+                    <a id="sidebar-menu-item" class="item"><i class="sidebar icon"></i>Tables</a>
                     <div class="right menu">
-                        <a class="item" onclick="log<?php echo isset($_SESSION['logged_in']) && $_SESSION['logged_in'] ? 'out' : 'in' ?>()"><i class="sign <?php echo isset($_SESSION['logged_in']) && $_SESSION['logged_in'] ? 'out' : 'in' ?> icon"></i><?php echo 'Log ' . (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] ? 'Out' : 'In') ?></a>
-                        <a class="item" onclick="introJs().start()"><i class="help icon"></i>Help</a>
+                        <a id="login-menu-item" class="item" onclick="log<?php echo isset($_SESSION['logged-in']) && $_SESSION['logged-in'] ? 'out' : 'in' ?>()"><i class="sign <?php echo isset($_SESSION['logged-in']) && $_SESSION['logged-in'] ? 'out' : 'in' ?> icon"></i><?php echo 'Log ' . (isset($_SESSION['logged-in']) && $_SESSION['logged-in'] ? 'Out' : 'In') ?></a>
+                        <a id="help-menu-item" class="item" onclick="show_help()"><i class="help icon"></i>Help</a>
                     </div>
                 </div>
+
+                <!-- -->
                 <div class="ui bottom attached segment pushable" style="margin-bottom: 0;">
                     <div class="ui inverted labeled icon left inline vertical sidebar menu">
                         <?php foreach ($tables as $table): ?>
                             <a class="item <?php if ($table === $current_table) echo 'active' ?>" href="?table=<?php echo $table ?>"><i class="table icon"></i><?php echo ucwords(str_replace("_", " ", $table)) ?></a>
                         <?php endforeach ?>
                     </div>
+
+                    <!-- -->
                     <div class="pusher">
                         <div class="ui container">
-                            <h1 class="ui header" data-step="1" data-intro="Testing1!" style="margin-top: 1.5rem; margin-bottom: 1.5rem; text-align: center !important;"><?php echo ucwords(str_replace("_", " ", $current_table)) ?></h1>
+                            <h1 class="ui header" style="margin-top: 1.5rem; margin-bottom: 1.5rem; text-align: center !important;"><?php echo ucwords(str_replace("_", " ", $current_table)) ?></h1>
                             <div class="ui segment" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
                                 <div class="ui stackable grid">
                                     <div class="row" style="padding-bottom: 0;">
                                         <div class="sixteen wide column">
-                                            <!--<h3 class="ui header" data-step="2" data-intro="Testing2!">Table data</h3>-->
                                             <div class="ui basic right floated buttons">
-                                                <button class="ui button" onclick="data_table.create_enter()"><i class="plus icon"></i>New Row</button>
+                                                <button id="data-table-new-row-button" class="ui button" onclick="data_table.create_enter()"><i class="plus icon"></i>New Row</button>
                                             </div>
                                         </div>
                                     </div>
@@ -277,10 +300,9 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                     </div>
                                     <div class="row" style="margin-top: 1.5rem; padding-bottom: 0;">
                                         <div class="sixteen wide column">
-                                            <!--<h3 class="ui left floated header" data-step="3" data-intro="Testing3!" style="position: absolute; bottom: 0; margin-bottom: 0;">Table structure</h3>-->
                                             <div class="ui basic right floated buttons">
-                                                <?php if(isset($_SESSION['logged_in']) && $_SESSION['logged_in']): ?>
-                                                    <button class="ui button" onclick="structure_table.create_enter()"><i class="plus icon"></i>New Column</button>
+                                                <?php if(isset($_SESSION['logged-in']) && $_SESSION['logged-in']): ?>
+                                                    <button id="data-table-new-column-button" class="ui button" onclick="structure_table.create_enter()"><i class="plus icon"></i>New Column</button>
                                                 <?php endif ?>
                                             </div>
                                         </div>
@@ -318,43 +340,98 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- -->
                         <footer class="ui center aligned footer segment">Made with <i class="blue fitted heart icon"></i> by <a href="https://jaredible.net" target="_blank">Jaredible</a></footer>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
 
+        <!-- -->
         <div class="ui mini modal">
+
+            <!-- -->
             <div class="header">Login</div>
+
+            <!-- -->
             <div class="content">
+
+                <!-- -->
                 <form class="ui form" method="post">
+
+                    <!-- -->
                     <input type="hidden" name="log-action" value="login">
+                    
+                    <!-- -->
                     <div class="field">
+                        
+                        <!-- -->
                         <input type="text" name="username", placeholder="Username">
+
                     </div>
+
+                    <!-- -->
                     <div class="field">
-                        <input type="text" name="password", placeholder="Password">
+                        <!-- -->
+                        <input type="password" name="password", placeholder="Password">
+
                     </div>
+
+                    <!-- -->
                     <div class="field">
+
+                        <!-- -->
                         <div class="ui checkbox">
+
+                            <!-- -->
                             <input id="remember" class="hidden" type="checkbox" name="remember" tabindex="0">
+
+                            <!-- -->
                             <label for="remember">Remember me</label>
+
                         </div>
+
                     </div>
+
+                    <!-- -->
                     <div class="ui basic buttons">
+                        <!-- -->
                         <button class="ui button" type="submit" name="submit-login">Submit</button>
+
                     </div>
+
                 </form>
+
             </div>
+
         </div>
 
+        <!-- -->
         <form id="action-form" method="post" style="display: none !important;"></form>
 
-        <data id="error" value="<?php echo $error ?>" style="display: none !important;"><?php echo $error ?></data>
+        <!-- -->
+        <data id="error" value="<?php echo $error ?>" style="display: none !important;"></data>
 
+        <!-- -->
+        <data id="logged-in" value="<?php echo isset($_SESSION['logged-in']) && $_SESSION['logged-in'] ? 'true' : 'false' ?>" style="display: none !important;"><?php echo $error ?></data>
+
+        <!--
+            Get JavaScript from a CDN so that the browser can download
+            them instead of the server and get the minified versions so
+            that the file size is the smallest possible.
+        -->
+        <!-- Load into this page JQuery's minified JavaScript file from a CDN. -->
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
+        <!-- Load into this page Fomantic-UI's minified JavaScript file from a CDN. -->
         <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.2/dist/semantic.min.js"></script>
+        <!-- Load into this page Intro.js's minified JavaScript file from a CDN. -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/intro.min.js"></script>
+        <!-- Load into this page the main JavaScript file from this domain. -->
         <script src="js/main.js"></script>
     </body>
 </html>
