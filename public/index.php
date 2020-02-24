@@ -474,12 +474,23 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                 
                                                 <!-- -->
                                                 <thead class="full-width">
+
+                                                    <!-- -->
                                                     <tr>
+
+                                                        <!-- -->
                                                         <?php foreach ($fields as $field_name): ?>
+
+                                                            <!-- -->
                                                             <th data-field="<?php echo $field_name ?>"><?php echo ucwords(str_replace("_", " ", $field_name)) ?></th>
+                                                            
                                                         <?php endforeach ?>
+
+                                                        <!-- -->
                                                         <th class="collapsing">Action</th>
+
                                                     </tr>
+
                                                 </thead>
 
                                                 <!-- -->
