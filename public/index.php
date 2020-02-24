@@ -1,14 +1,34 @@
-
 <?php
-
-// CREATE: INSERT INTO table_name (column1, ...) VALUES (value1, ...);
-// UPDATE: UPDATE table_name SET column1 = value1, ... WHERE column1 = value1, ...;
-// DELETE: DELETE FROM table_name WHERE column1 = value1, ...;
-
 session_start();
 
 // Load configurations
 require_once('../config/database.php');
+
+$error = '';
+
+// Handle login/logout
+if (isset($_POST['log-action'])) {
+    switch ($_POST['log-action']) {
+        case 'login':
+            $username = $_POST['username'];
+            $password = $_POST['password'];
+            if (isset($_POST['remember'])) {
+                $remember = $_POST['remember'];
+            }
+
+            if ($username === $db_user && $password === $db_pass) {
+                $_SESSION['logged_in'] = true;
+            } else {
+                $error = 'Incorrect username or password!';
+            }
+            break;
+        case 'logout':
+            if ($_SESSION['logged_in']) {
+                $_SESSION['logged_in'] = false;
+            }
+            break;
+    }
+}
 
 // Attempt to connect to the database, and if not, then display an error message
 $conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
@@ -24,7 +44,6 @@ $current_table = '';
 $tables = array();
 $fields = array();
 $data = array(); // 2D array
-$error = '';
 
 // Get all table names in alphabetical order
 $query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '$db_name' ORDER BY TABLE_NAME ASC";
@@ -50,14 +69,30 @@ while ($row = mysqli_fetch_array($result)) {
 if (isset($_POST['table-action'])) {
     switch ($_POST['table-action']) {
         case 'create':
-            $sql = "INSERT INTO $current_table (" . implode(', ', $fields) . ') VALUES (?, ?, ?, ?)';
-            echo $sql;
-            if ($stmt = mysqli_prepare($conn, $sql)) {
-                mysqli_stmt_bind_param($stmt, "ssss", ...array("69", "69", "69", "69"));
-                $course_number = $_POST['course_number'];
-                $course_name = $_POST['course_name'];
-                $credit_hours = $_POST['credit_hours'];
-                $department = $_POST['department'];
+            $sql_fields = implode(', ', $fields);
+            $sql_values = implode(', ', array_fill(0, count($fields), '?'));
+            $sql = "INSERT INTO $current_table ($sql_fields) VALUES ($sql_values)";
+
+            $stmt = mysqli_stmt_init($conn);
+
+            if (mysqli_stmt_prepare($stmt, $sql)) {
+                $sql_values_array = array();
+                foreach ($fields as $field => $field_value) {
+                    $sql_values_array[] = $_POST[$field_value];
+                }
+
+                $types = str_repeat("s", count($fields));
+                $params = $sql_values_array;
+
+                $bind_names[] = $types;
+                for ($i = 0; $i < count($params); $i++) {
+                    $bind_name = 'bind' . $i;
+                    $$bind_name = $params[$i];
+                    $bind_names[] = &$$bind_name;
+                }
+
+                call_user_func_array(array($stmt, 'bind_param'), $bind_names);
+
                 if (!mysqli_stmt_execute($stmt)) {
                     $error = mysqli_error($conn);
                 }
@@ -65,17 +100,32 @@ if (isset($_POST['table-action'])) {
             mysqli_stmt_close($stmt);
             break;
         case 'update':
-            $sql = 'UPDATE course SET course_number = ?, course_name = ?, credit_hours = ?, department = ? WHERE course_number = ? AND course_name = ? AND credit_hours = ? AND department = ?';
-            if ($stmt = mysqli_prepare($conn, $sql)) {
-                mysqli_stmt_bind_param($stmt, "ssssssss", $new_course_number, $new_course_name, $new_credit_hours, $new_department, $old_course_number, $old_course_name, $old_credit_hours, $old_department);
-                $new_course_number = $_POST['new_course_number'];
-                $new_course_name = $_POST['new_course_name'];
-                $new_credit_hours = $_POST['new_credit_hours'];
-                $new_department = $_POST['new_department'];
-                $old_course_number = $_POST['old_course_number'];
-                $old_course_name = $_POST['old_course_name'];
-                $old_credit_hours = $_POST['old_credit_hours'];
-                $old_department = $_POST['old_department'];
+            $sql_set = implode(', ', array_map(function ($field) { return $field . ' = ?'; }, $fields));
+            $sql_where = implode(' AND ', array_map(function ($field) { return $field . ' = ?'; }, $fields));
+            $sql = "UPDATE $current_table SET $sql_set WHERE $sql_where";
+
+            $stmt = mysqli_stmt_init($conn);
+
+            if (mysqli_stmt_prepare($stmt, $sql)) {
+                $sql_set_array = array();
+                $sql_where_array = array();
+                foreach ($fields as $field => $field_value) {
+                    $sql_set_array[] = $_POST['new_' . $field_value];
+                    $sql_where_array[] = $_POST['old_' . $field_value];
+                }
+
+                $types = str_repeat("s", count($fields) * 2);
+                $params = array_merge($sql_set_array, $sql_where_array);
+
+                $bind_names[] = $types;
+                for ($i = 0; $i < count($params); $i++) {
+                    $bind_name = 'bind' . $i;
+                    $$bind_name = $params[$i];
+                    $bind_names[] = &$$bind_name;
+                }
+
+                call_user_func_array(array($stmt, 'bind_param'), $bind_names);
+
                 if (!mysqli_stmt_execute($stmt)) {
                     $error = mysqli_error($conn);
                 }
@@ -83,13 +133,29 @@ if (isset($_POST['table-action'])) {
             mysqli_stmt_close($stmt);
             break;
         case 'delete':
-            $sql = 'DELETE FROM course WHERE course_number = ? AND course_name = ? AND credit_hours = ? AND department = ?';
-            if ($stmt = mysqli_prepare($conn, $sql)) {
-                mysqli_stmt_bind_param($stmt, "ssss", $course_number, $course_name, $credit_hours, $department);
-                $course_number = $_POST['course_number'];
-                $course_name = $_POST['course_name'];
-                $credit_hours = $_POST['credit_hours'];
-                $department = $_POST['department'];
+            $sql_delete = implode(' AND ', array_map(function ($field) { return $field . ' = ?'; }, $fields));
+            $sql = "DELETE FROM $current_table WHERE $sql_delete";
+
+            $stmt = mysqli_stmt_init($conn);
+
+            if (mysqli_stmt_prepare($stmt, $sql)) {
+                $sql_where_array = array();
+                foreach ($fields as $field => $field_value) {
+                    $sql_where_array[] = $_POST[$field_value];
+                }
+
+                $types = str_repeat("s", count($fields));
+                $params = $sql_where_array;
+
+                $bind_names[] = $types;
+                for ($i = 0; $i < count($params); $i++) {
+                    $bind_name = 'bind' . $i;
+                    $$bind_name = $params[$i];
+                    $bind_names[] = &$$bind_name;
+                }
+
+                call_user_func_array(array($stmt, 'bind_param'), $bind_names);
+
                 if (!mysqli_stmt_execute($stmt)) {
                     $error = mysqli_error($conn);
                 }
@@ -105,7 +171,6 @@ $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
     $data[] = $row;
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -124,9 +189,9 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
             <div class="ui top attached segment" style="padding: 0; border: 0; margin-top: 0;">
                 <div class="ui top attached menu">
                     <a class="item"><i class="sidebar icon"></i>Tables</a>
-                    <a class="item" href="index.php"><i class="home icon"></i>Home</a>
+                    <!--<a class="item" href="index.php"><i class="home icon"></i>Home</a>-->
                     <div class="right menu">
-                        <a class="item" href="login.php"><i class="sign <?php echo 0 === 1 ? 'out' : 'in' ?> icon"></i><?php echo 'Log ' . (0 === 1 ? 'Out' : 'In') ?></a>
+                        <a class="item" onclick="log<?php echo isset($_SESSION['logged_in']) && $_SESSION['logged_in'] ? 'out' : 'in' ?>()"><i class="sign <?php echo isset($_SESSION['logged_in']) && $_SESSION['logged_in'] ? 'out' : 'in' ?> icon"></i><?php echo 'Log ' . (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] ? 'Out' : 'In') ?></a>
                         <a class="item" onclick="introJs().start()"><i class="help icon"></i>Help</a>
                     </div>
                 </div>
@@ -143,7 +208,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                 <div class="ui stackable grid">
                                     <div class="row" style="padding-bottom: 0;">
                                         <div class="sixteen wide column">
-                                            <h3 class="ui left floated header" data-step="2" data-intro="Testing2!" style="position: absolute; bottom: 0; margin-bottom: 0;">Table data</h3>
+                                            <!--<h3 class="ui header" data-step="2" data-intro="Testing2!">Table data</h3>-->
                                             <div class="ui basic right floated buttons">
                                                 <button class="ui button" onclick="data_table.create_enter()"><i class="plus icon"></i>New Row</button>
                                             </div>
@@ -210,11 +275,13 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                             </table>
                                         </div>
                                     </div>
-                                    <div class="row" style="padding-bottom: 0;">
+                                    <div class="row" style="margin-top: 1.5rem; padding-bottom: 0;">
                                         <div class="sixteen wide column">
-                                            <h3 class="ui left floated header" data-step="3" data-intro="Testing3!" style="position: absolute; bottom: 0; margin-bottom: 0;">Table structure</h3>
+                                            <!--<h3 class="ui left floated header" data-step="3" data-intro="Testing3!" style="position: absolute; bottom: 0; margin-bottom: 0;">Table structure</h3>-->
                                             <div class="ui basic right floated buttons">
-                                                <button class="ui button" onclick="structure_table.create_enter()"><i class="plus icon"></i>New Column</button>
+                                                <?php if(isset($_SESSION['logged_in']) && $_SESSION['logged_in']): ?>
+                                                    <button class="ui button" onclick="structure_table.create_enter()"><i class="plus icon"></i>New Column</button>
+                                                <?php endif ?>
                                             </div>
                                         </div>
                                     </div>
@@ -251,9 +318,33 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                 </div>
                             </div>
                         </div>
-                        <footer class="ui center aligned black footer segment">Made with <i class="red fitted heart icon"></i> by <a href="https://jaredible.net" target="_blank">Jaredible</a></footer>
+                        <footer class="ui center aligned footer segment">Made with <i class="blue fitted heart icon"></i> by <a href="https://jaredible.net" target="_blank">Jaredible</a></footer>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="ui mini modal">
+            <div class="header">Login</div>
+            <div class="content">
+                <form class="ui form" method="post">
+                    <input type="hidden" name="log-action" value="login">
+                    <div class="field">
+                        <input type="text" name="username", placeholder="Username">
+                    </div>
+                    <div class="field">
+                        <input type="text" name="password", placeholder="Password">
+                    </div>
+                    <div class="field">
+                        <div class="ui checkbox">
+                            <input id="remember" class="hidden" type="checkbox" name="remember" tabindex="0">
+                            <label for="remember">Remember me</label>
+                        </div>
+                    </div>
+                    <div class="ui basic buttons">
+                        <button class="ui button" type="submit" name="submit-login">Submit</button>
+                    </div>
+                </form>
             </div>
         </div>
 

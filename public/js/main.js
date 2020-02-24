@@ -1,4 +1,3 @@
-
 const action_form = $("#action-form");
 
 class Table {
@@ -213,6 +212,19 @@ function to_title_case(str) {
 
 const data_table = new Table("data-table", "data");
 const structure_table = new Table("structure-table", "structure");
+
+function login() {
+    $(".mini.modal").modal("show");
+}
+
+function logout() {
+    let form_input_type = $("<input>");
+    form_input_type.attr("type", "hidden");
+    form_input_type.attr("name", "log-action");
+    form_input_type.val("logout");
+    action_form.append(form_input_type);
+    action_form.submit();
+}
 
 $(function() {
     init_sidebar();
