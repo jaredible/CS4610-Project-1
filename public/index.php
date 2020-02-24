@@ -189,57 +189,290 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
     $data[] = $row;
 }
 ?>
+
+<!--  -->
+<?php require_once('../config/strings.php') ?>
+
+<!-- -->
 <!DOCTYPE html>
+
+<!-- -->
 <html lang="en">
+
+    <!-- -->
     <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
-        <title>University Portal</title>
-        <link rel="icon" type="image/x-icon" href="favicon.ico">
-        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.2/dist/semantic.min.css">
-        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/introjs.min.css">
-        <link rel="stylesheet" type="text/css" href="css/styles.css">
+
+        <!-- -->
+        <?php require_once('../includes/head.php') ?>
+
     </head>
+
+    <!-- -->
     <body>
 
+        <!-- -->
         <div class="context">
 
+            <!-- -->
             <div class="ui top attached segment" style="padding: 0; border: 0; margin-top: 0;">
             
                 <!-- -->
-                <div class="ui top attached menu">
-                    <a id="sidebar-menu-item" class="item"><i class="sidebar icon"></i>Tables</a>
-                    <div class="right menu">
-                        <a id="login-menu-item" class="item" onclick="log<?php echo isset($_SESSION['logged-in']) && $_SESSION['logged-in'] ? 'out' : 'in' ?>()"><i class="sign <?php echo isset($_SESSION['logged-in']) && $_SESSION['logged-in'] ? 'out' : 'in' ?> icon"></i><?php echo 'Log ' . (isset($_SESSION['logged-in']) && $_SESSION['logged-in'] ? 'Out' : 'In') ?></a>
-                        <a id="help-menu-item" class="item" onclick="show_help()"><i class="help icon"></i>Help</a>
-                    </div>
-                </div>
+                <?php require_once('../includes/header.php') ?>
 
                 <!-- -->
                 <div class="ui bottom attached segment pushable" style="margin-bottom: 0;">
+
+                    <!-- -->
                     <div class="ui inverted labeled icon left inline vertical sidebar menu">
+
+                        <!-- -->
                         <?php foreach ($tables as $table): ?>
+
+                            <!-- -->
                             <a class="item <?php if ($table === $current_table) echo 'active' ?>" href="?table=<?php echo $table ?>"><i class="table icon"></i><?php echo ucwords(str_replace("_", " ", $table)) ?></a>
+                        
                         <?php endforeach ?>
+
                     </div>
 
                     <!-- -->
                     <div class="pusher">
+
+                        <!-- -->
                         <div class="ui container">
+                            
+                            <!-- -->
                             <h1 class="ui header" style="margin-top: 1.5rem; margin-bottom: 1.5rem; text-align: center !important;"><?php echo ucwords(str_replace("_", " ", $current_table)) ?></h1>
+                            
+                            <!-- -->
                             <div class="ui segment" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                                
+                                <!-- -->
                                 <div class="ui stackable grid">
+
+                                    <!--
+                                        This is just a simple sentence.
+                                    -->
+
+                                    <!-- -->
                                     <div class="row" style="padding-bottom: 0;">
+
+                                        <!-- -->
                                         <div class="sixteen wide column">
+                                            
+                                            <!-- -->
                                             <div class="ui basic right floated buttons">
+                                                
+                                                <!-- -->
                                                 <button id="data-table-new-row-button" class="ui button" onclick="data_table.create_enter()"><i class="plus icon"></i>New Row</button>
+                                            
                                             </div>
+                                        
                                         </div>
+
                                     </div>
+
+                                    <!-- -->
                                     <div class="row">
+
+                                        <!-- -->
                                         <div class="sixteen wide column">
+
+                                            <!-- -->
                                             <table id="data-table" class="ui center aligned table" data-table="<?php echo $current_table ?>">
+                                                
+                                                <!-- -->
+                                                <thead class="full-width">
+
+                                                    <!-- -->
+                                                    <tr>
+
+                                                        <!-- -->
+                                                        <?php foreach ($fields as $field_name): ?>
+
+                                                            <!-- -->
+                                                            <th data-field="<?php echo $field_name ?>"><?php echo ucwords(str_replace("_", " ", $field_name)) ?></th>
+
+                                                        <?php endforeach ?>
+                                                        
+                                                        <!-- -->
+                                                        <th class="collapsing">Action</th>
+
+                                                    </tr>
+
+                                                </thead>
+
+                                                <!-- -->
+                                                <tbody>
+
+                                                    <!-- -->
+                                                    <tr style="display: none !important;">
+
+                                                        <!-- -->
+                                                        <?php foreach ($fields as $field_name): ?>
+
+                                                            <!-- -->
+                                                            <td class="input">
+
+                                                                <!-- -->
+                                                                <div class="ui fluid input">
+
+                                                                    <!-- -->
+                                                                    <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
+
+                                                                </div>
+
+                                                            </td>
+
+                                                        <?php endforeach ?>
+
+                                                        <!-- -->
+                                                        <td>
+
+                                                            <!-- -->
+                                                            <div class="ui basic icon buttons">
+
+                                                                <!-- -->
+                                                                <button class="ui button data-table-create-leave-button" onclick="data_table.create_leave()"><i class="cancel icon"></i></button>
+                                                                
+                                                                <!-- -->
+                                                                <button class="ui button data-table-create-submit-button" onclick="data_table.create_submit()"><i class="save icon"></i></button>
+
+                                                            </div>
+
+                                                        </td>
+
+                                                    </tr>
+
+                                                    <!-- -->
+                                                    <?php foreach ($data as $row => $row_value): ?>
+
+                                                        <!-- -->
+                                                        <tr data-row="<?php echo md5(implode(',', $row_value)) ?>">
+
+                                                            <!-- -->
+                                                            <?php foreach ($row_value as $col => $col_value): ?>
+
+                                                                <!-- -->
+                                                                <td class="data" data-field="<?php echo $col ?>" data-value="<?php echo $col_value ?>">
+
+                                                                    <!-- -->
+                                                                    <data><?php echo $col_value ?></data>
+
+                                                                </td>
+
+                                                            <?php endforeach ?>
+
+                                                            <!-- -->
+                                                            <td>
+
+                                                                <!-- -->
+                                                                <div class="ui basic icon buttons" style="display: none !important;">
+
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-update-leave-button" onclick="data_table.update_leave()"><i class="cancel icon"></i></button>
+
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-update-submit-button" onclick="data_table.update_submit()"><i class="save icon"></i></button>
+
+                                                                </div>
+
+                                                                <!-- -->
+                                                                <div class="ui basic icon buttons">
+                                                                    
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-update-enter-button" onclick="data_table.update_enter('<?php echo md5(implode(',', $row_value)) ?>')"><i class="edit icon"></i></button>
+
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-delete-submit-button" onclick="data_table.delete_submit('<?php echo md5(implode(',', $row_value)) ?>')"><i class="trash icon"></i></button>
+
+                                                                </div>
+
+                                                            </td>
+
+                                                        </tr>
+
+                                                    <?php endforeach ?>
+
+                                                </tbody>
+
+                                                <!-- -->
+                                                <tfoot>
+
+                                                    <!-- -->
+                                                    <tr>
+
+                                                        <!-- -->
+                                                        <?php foreach ($fields as $field_name): ?>
+
+                                                            <!-- -->
+                                                            <td>
+
+                                                                <!-- -->
+                                                                <div class="ui basic icon buttons">
+
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-order-by-asc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-order-by-desc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
+
+                                                                </div>
+
+                                                            </td>
+
+                                                        <?php endforeach ?>
+
+                                                        <!-- -->
+                                                        <td></td>
+
+                                                    </tr>
+
+                                                </tfoot>
+
+                                            </table>
+
+                                        </div>
+
+                                    </div>
+
+                                    <!--
+                                        This is just a simple sentence.
+                                    -->
+
+                                    <!-- -->
+                                    <div class="row" style="margin-top: 1.5rem; padding-bottom: 0;">
+
+                                        <!-- -->
+                                        <div class="sixteen wide column">
+                                            
+                                            <!-- -->
+                                            <div class="ui basic right floated buttons">
+                                            
+                                                <!-- -->
+                                                <?php if(isset($_SESSION['logged-in']) && $_SESSION['logged-in']): ?>
+
+                                                    <!-- -->
+                                                    <button id="data-table-new-column-button" class="ui button" onclick="structure_table.create_enter()"><i class="plus icon"></i>New Column</button>
+                                                
+                                                <?php endif ?>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <!-- -->
+                                    <div class="row">
+
+                                        <!-- -->
+                                        <div class="sixteen wide column">
+
+                                            <!-- -->
+                                            <table id="structure-table" class="ui center aligned table" data-table="<?php echo $current_table ?>">
+                                                
+                                                <!-- -->
                                                 <thead class="full-width">
                                                     <tr>
                                                         <?php foreach ($fields as $field_name): ?>
@@ -248,101 +481,149 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
                                                         <th class="collapsing">Action</th>
                                                     </tr>
                                                 </thead>
+
+                                                <!-- -->
                                                 <tbody>
+
+                                                    <!-- -->
                                                     <tr style="display: none !important;">
+                                                        
+                                                        <!-- -->
                                                         <?php foreach ($fields as $field_name): ?>
+
+                                                            <!-- -->
                                                             <td class="input">
+
+                                                                <!-- -->
                                                                 <div class="ui fluid input">
+
+                                                                    <!-- -->
                                                                     <input type="text" name="<?php echo $field_name ?>" placeholder="<?php echo ucwords(str_replace("_", " ", $field_name)) ?>">
+
                                                                 </div>
+
                                                             </td>
+
                                                         <?php endforeach ?>
+
+                                                        <!-- -->
                                                         <td>
+
+                                                            <!-- -->
                                                             <div class="ui basic icon buttons">
+
+                                                                <!-- -->
                                                                 <button class="ui button data-table-create-leave-button" onclick="data_table.create_leave()"><i class="cancel icon"></i></button>
+                                                                
+                                                                <!-- -->
                                                                 <button class="ui button data-table-create-submit-button" onclick="data_table.create_submit()"><i class="save icon"></i></button>
+
                                                             </div>
+
                                                         </td>
+
                                                     </tr>
+
+                                                    <!-- -->
                                                     <?php foreach ($data as $row => $row_value): ?>
+
+                                                        <!-- -->
                                                         <tr data-row="<?php echo md5(implode(',', $row_value)) ?>">
+
+                                                            <!-- -->
                                                             <?php foreach ($row_value as $col => $col_value): ?>
+
+                                                                <!-- -->
                                                                 <td class="data" data-field="<?php echo $col ?>" data-value="<?php echo $col_value ?>">
+                                                                    
+                                                                    <!-- -->
                                                                     <data><?php echo $col_value ?></data>
+
                                                                 </td>
+
                                                             <?php endforeach ?>
+
+                                                            <!-- -->
                                                             <td>
-                                                                <div class="ui basic icon buttons">
-                                                                    <button class="ui button data-table-update-leave-button" onclick="data_table.update_leave()" style="display: none !important;"><i class="cancel icon"></i></button>
-                                                                    <button class="ui button data-table-update-submit-button" onclick="data_table.update_submit()" style="display: none !important;"><i class="save icon"></i></button>
-                                                                    <button class="ui button data-table-update-enter-button" onclick="data_table.update_enter('<?php echo md5(implode(',', $row_value)) ?>')" style=""><i class="edit icon"></i></button>
-                                                                    <button class="ui button data-table-delete-submit-button" onclick="data_table.delete_submit('<?php echo md5(implode(',', $row_value)) ?>')" style=""><i class="trash icon"></i></button>
+
+                                                                <!-- -->
+                                                                <div class="ui basic icon buttons" style="display: none !important;">
+
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-update-leave-button" onclick="data_table.update_leave()"><i class="cancel icon"></i></button>
+                                                                    
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-update-submit-button" onclick="data_table.update_submit()"><i class="save icon"></i></button>
+
                                                                 </div>
+
+                                                                <!-- -->
+                                                                <div class="ui basic icon buttons">
+                                                                
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-update-enter-button" onclick="data_table.update_enter('<?php echo md5(implode(',', $row_value)) ?>')"><i class="edit icon"></i></button>
+                                                                    
+                                                                    <!-- -->
+                                                                    <button class="ui button data-table-delete-submit-button" onclick="data_table.delete_submit('<?php echo md5(implode(',', $row_value)) ?>')"><i class="trash icon"></i></button>
+
+                                                                </div>
+
                                                             </td>
+
                                                         </tr>
+
                                                     <?php endforeach ?>
+
                                                 </tbody>
+
+                                                <!-- -->
                                                 <tfoot>
+
+                                                    <!-- -->
                                                     <tr>
+
+                                                        <!-- -->
                                                         <?php foreach ($fields as $field_name): ?>
+
+                                                            <!-- -->
                                                             <td>
+
+                                                                <!-- -->
                                                                 <div class="ui basic icon buttons">
+
+                                                                    <!-- -->
                                                                     <button class="ui button data-table-order-by-asc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+                                                                    
+                                                                    <!-- -->
                                                                     <button class="ui button data-table-order-by-desc-button" onclick="data_table.order_by('<?php echo $field_name ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
+
                                                                 </div>
+
                                                             </td>
+
                                                         <?php endforeach ?>
+
+                                                        <!-- -->
                                                         <td></td>
+
                                                     </tr>
+
                                                 </tfoot>
+
                                             </table>
+
                                         </div>
+
                                     </div>
-                                    <div class="row" style="margin-top: 1.5rem; padding-bottom: 0;">
-                                        <div class="sixteen wide column">
-                                            <div class="ui basic right floated buttons">
-                                                <?php if(isset($_SESSION['logged-in']) && $_SESSION['logged-in']): ?>
-                                                    <button id="data-table-new-column-button" class="ui button" onclick="structure_table.create_enter()"><i class="plus icon"></i>New Column</button>
-                                                <?php endif ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="sixteen wide column">
-                                            <table id="structure-table" class="ui center aligned table" data-table="<?php echo $current_table ?>">
-                                                <thead class="full-width">
-                                                    <tr>
-                                                        <?php for ($i = 0; $i < 6; $i++): ?>
-                                                            <th><?php echo "Column $i" ?></th>
-                                                        <?php endfor ?>
-                                                        <th class="collapsing">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php for ($i = 0; $i < 6; $i++): ?>
-                                                        <tr>
-                                                            <?php for ($j = 0; $j < 6; $j++): ?>
-                                                                <td><?php echo "Cell $i, $j" ?></td>
-                                                            <?php endfor ?>
-                                                            <td>
-                                                                <div class="ui basic icon buttons">
-                                                                    <button class="ui button"><i class="edit icon"></i></button>
-                                                                    <button class="ui button"><i class="trash icon"></i></button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    <?php endfor ?>
-                                                </tbody>
-                                                <tfoot></tfoot>
-                                            </table>
-                                        </div>
-                                    </div>
+                                    
                                 </div>
+
                             </div>
+
                         </div>
 
                         <!-- -->
-                        <footer class="ui center aligned footer segment">Made with <i class="blue fitted heart icon"></i> by <a href="https://jaredible.net" target="_blank">Jaredible</a></footer>
+                        <?php require_once('../includes/footer.php') ?>
 
                     </div>
 
@@ -353,63 +634,7 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         </div>
 
         <!-- -->
-        <div class="ui mini modal">
-
-            <!-- -->
-            <div class="header">Login</div>
-
-            <!-- -->
-            <div class="content">
-
-                <!-- -->
-                <form class="ui form" method="post">
-
-                    <!-- -->
-                    <input type="hidden" name="log-action" value="login">
-                    
-                    <!-- -->
-                    <div class="field">
-                        
-                        <!-- -->
-                        <input type="text" name="username", placeholder="Username">
-
-                    </div>
-
-                    <!-- -->
-                    <div class="field">
-                        <!-- -->
-                        <input type="password" name="password", placeholder="Password">
-
-                    </div>
-
-                    <!-- -->
-                    <div class="field">
-
-                        <!-- -->
-                        <div class="ui checkbox">
-
-                            <!-- -->
-                            <input id="remember" class="hidden" type="checkbox" name="remember" tabindex="0">
-
-                            <!-- -->
-                            <label for="remember">Remember me</label>
-
-                        </div>
-
-                    </div>
-
-                    <!-- -->
-                    <div class="ui basic buttons">
-                        <!-- -->
-                        <button class="ui button" type="submit" name="submit-login">Submit</button>
-
-                    </div>
-
-                </form>
-
-            </div>
-
-        </div>
+        <?php require_once('../includes/modals/login.php') ?>
 
         <!-- -->
         <form id="action-form" method="post" style="display: none !important;"></form>
@@ -420,19 +645,12 @@ while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
         <!-- -->
         <data id="logged-in" value="<?php echo isset($_SESSION['logged-in']) && $_SESSION['logged-in'] ? 'true' : 'false' ?>" style="display: none !important;"><?php echo $error ?></data>
 
-        <!--
-            Get JavaScript from a CDN so that the browser can download
-            them instead of the server and get the minified versions so
-            that the file size is the smallest possible.
-        -->
-        <!-- Load into this page JQuery's minified JavaScript file from a CDN. -->
-        <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"></script>
-        <!-- Load into this page Fomantic-UI's minified JavaScript file from a CDN. -->
-        <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.2/dist/semantic.min.js"></script>
-        <!-- Load into this page Intro.js's minified JavaScript file from a CDN. -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/2.9.3/intro.min.js"></script>
-        <!-- Load into this page the main JavaScript file from this domain. -->
-        <script src="js/main.js"></script>
+        <!-- -->
+        <?php require_once('../includes/scripts.php') ?>
+
     </body>
+
 </html>
+
+<!-- -->
 <?php mysqli_close($conn) ?>

@@ -91,10 +91,8 @@ class Table {
             return td_div_element;
         });
 
-        this.update_row.find("td button.data-table-update-leave-button").attr("style", "");
-        this.update_row.find("td button.data-table-update-submit-button").attr("style", "");
-        this.update_row.find("td button.data-table-update-enter-button").attr("style", "display: none !important;");
-        this.update_row.find("td button.data-table-delete-submit-button").attr("style", "display: none !important;");
+        this.update_row.find("td:last .buttons:first").attr("style", "");
+        this.update_row.find("td:last .buttons:last").attr("style", "display: none !important;");
     }
 
     update_submit() {
@@ -148,10 +146,8 @@ class Table {
             return td_data_element;
         });
 
-        this.update_row.find("td button.data-table-update-leave-button").attr("style", "display: none !important;");
-        this.update_row.find("td button.data-table-update-submit-button").attr("style", "display: none !important;");
-        this.update_row.find("td button.data-table-update-enter-button").attr("style", "");
-        this.update_row.find("td button.data-table-delete-submit-button").attr("style", "");
+        this.update_row.find("td:last .buttons:first").attr("style", "display: none !important;");
+        this.update_row.find("td:last .buttons:last").attr("style", "");
 
         this.update_row = null;
     }
