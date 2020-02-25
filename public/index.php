@@ -91,7 +91,7 @@ $field_name_mapping = array(
 );
 
 // Get current table's column names.
-$query = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table'";
+$query = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table' ORDER BY ORDINAL_POSITION";
 $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_assoc($result)) {
     $fields[] = $row;
@@ -210,8 +210,8 @@ if (isset($_POST['table-action']) && isset($_POST['table-type'])) {
             switch ($_POST['table-action']) {
                 case 'create':
                     $sql_column_name = $_POST['COLUMN_NAME'];
-                    $sql_column_definition = 'VARCHAR(50) NOT NULL';
-                    $sql = "ALTER TABLE $current_table ADD $sql_column_name $sql_column_definition";
+                    $sql_column_definition = strtoupper($_POST['DATA_TYPE']) . ($_POST['DATA_TYPE'] === 'int' || $_POST['DATA_TYPE'] === 'varchar' ? '(' . $_POST['CHARACTER_MAXIMUM_LENGTH'] . ')' : '') . 'NOT NULL';
+                    $sql = "ALTER TABLE $current_table ADD COLUMN $sql_column_name $sql_column_definition";
 
                     $stmt = mysqli_stmt_init($conn);
 
@@ -225,32 +225,13 @@ if (isset($_POST['table-action']) && isset($_POST['table-type'])) {
 
                     break;
                 case 'update':
-                    $sql_set = implode(', ', array_map(function ($field) { return $field . ' = ?'; }, array_column($fields, 'COLUMN_NAME')));
-                    $sql_where = implode(' AND ', array_map(function ($field) { return $field . ' = ?'; }, array_column($fields, 'COLUMN_NAME')));
-                    $sql = "UPDATE $current_table SET $sql_set WHERE $sql_where";
+                    $sql_column_name = $_POST['new_NAME'];
+                    $sql_column_definition = strtoupper($_POST['new_TYPE']) . ($_POST['new_TYPE'] === 'int' || $_POST['new_TYPE'] === 'varchar' ? '(' . $_POST['new_LENGTH'] . ')' : '') . 'NOT NULL';
+                    $sql = "ALTER TABLE $current_table MODIFY COLUMN $sql_column_name $sql_column_definition";
 
                     $stmt = mysqli_stmt_init($conn);
 
                     if (mysqli_stmt_prepare($stmt, $sql)) {
-                        $sql_set_array = array();
-                        $sql_where_array = array();
-                        foreach ($fields as $field_index => $field_value) {
-                            $sql_set_array[] = $_POST['new_' . $field_value['COLUMN_NAME']];
-                            $sql_where_array[] = $_POST['old_' . $field_value['COLUMN_NAME']];
-                        }
-
-                        $types = str_repeat("s", count(array_column($fields, 'COLUMN_NAME')) * 2);
-                        $params = array_merge($sql_set_array, $sql_where_array);
-
-                        $bind_names[] = $types;
-                        for ($i = 0; $i < count($params); $i++) {
-                            $bind_name = 'bind' . $i;
-                            $$bind_name = $params[$i];
-                            $bind_names[] = &$$bind_name;
-                        }
-
-                        call_user_func_array(array($stmt, 'bind_param'), $bind_names);
-
                         if (!mysqli_stmt_execute($stmt)) {
                             $error = mysqli_error($conn);
                         }
@@ -260,29 +241,12 @@ if (isset($_POST['table-action']) && isset($_POST['table-type'])) {
 
                     break;
                 case 'delete':
-                    $sql_delete = implode(' AND ', array_map(function ($field) { return $field . ' = ?'; }, array_column($fields, 'COLUMN_NAME')));
-                    $sql = "DELETE FROM $current_table WHERE $sql_delete";
+                    $sql_delete = $_POST['NAME'];
+                    $sql = "ALTER TABLE $current_table DROP COLUMN $sql_delete";
 
                     $stmt = mysqli_stmt_init($conn);
 
                     if (mysqli_stmt_prepare($stmt, $sql)) {
-                        $sql_where_array = array();
-                        foreach ($fields as $field_index => $field_value) {
-                            $sql_where_array[] = $_POST[$field_value['COLUMN_NAME']];
-                        }
-
-                        $types = str_repeat("s", count(array_column($fields, 'COLUMN_NAME')));
-                        $params = $sql_where_array;
-
-                        $bind_names[] = $types;
-                        for ($i = 0; $i < count($params); $i++) {
-                            $bind_name = 'bind' . $i;
-                            $$bind_name = $params[$i];
-                            $bind_names[] = &$$bind_name;
-                        }
-
-                        call_user_func_array(array($stmt, 'bind_param'), $bind_names);
-
                         if (!mysqli_stmt_execute($stmt)) {
                             $error = mysqli_error($conn);
                         }
@@ -297,7 +261,7 @@ if (isset($_POST['table-action']) && isset($_POST['table-type'])) {
             $fields = array();
 
             // Get current table's column names after updating them.
-            $query = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, COLUMN_DEFAULT, IS_NULLABLE, COLUMN_KEY FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table'";
+            $query = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table'";
             $result = mysqli_query($conn, $query);
             while ($row = mysqli_fetch_assoc($result)) {
                 $fields[] = $row;
@@ -310,7 +274,7 @@ if (isset($_POST['table-action']) && isset($_POST['table-type'])) {
 // Get current table's data
 $query = "SELECT * FROM $current_table" . (isset($param_order) ? " ORDER BY $param_order" : '');
 $result = mysqli_query($conn, $query);
-while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_assoc($result)) {
     $data[] = $row;
 }
 
@@ -334,13 +298,13 @@ $table_structure_data_types = array("int", "varchar", "text", "date");
                     </div>
                     <div class="pusher">
                         <div class="ui container">
-                            <h1 class="ui header" style="margin-top: 1.5rem; margin-bottom: 1.5rem; text-align: center !important;"><?php echo ucwords(str_replace("_", " ", $current_table)) ?></h1>
+                            <h1 id="table-header" class="ui header" style="margin-top: 1.5rem; margin-bottom: 1.5rem; text-align: center !important;"><?php echo ucwords(str_replace("_", " ", $current_table)) ?></h1>
                             <div class="ui segment" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
                                 <div class="ui stackable grid">
                                     <div class="row" style="padding-bottom: 0;">
                                         <div class="sixteen wide column">
                                             <div class="ui basic right floated buttons">
-                                                <button id="data-table-new-row-button" class="ui button" onclick="data_table.create_enter()"><i class="plus icon"></i>New Record</button>
+                                                <button id="data-table-new-record-button" class="ui action button" onclick="data_table.create_enter()"><i class="plus icon"></i>New Record</button>
                                             </div>
                                         </div>
                                     </div>
@@ -366,8 +330,8 @@ $table_structure_data_types = array("int", "varchar", "text", "date");
                                                         <?php endforeach ?>
                                                         <td>
                                                             <div class="ui basic icon buttons">
-                                                                <button class="ui button data-table-create-leave-button" onclick="data_table.create_leave()"><i class="cancel icon"></i></button>
-                                                                <button class="ui button data-table-create-submit-button" onclick="data_table.create_submit()"><i class="save icon"></i></button>
+                                                                <button class="ui action button data-table-create-leave-button" onclick="data_table.create_leave()"><i class="cancel icon"></i></button>
+                                                                <button class="ui action button data-table-create-submit-button" onclick="data_table.create_submit()"><i class="save icon"></i></button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -380,12 +344,12 @@ $table_structure_data_types = array("int", "varchar", "text", "date");
                                                             <?php endforeach ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons" style="display: none !important;">
-                                                                    <button class="ui button data-table-update-leave-button" onclick="data_table.update_leave()"><i class="cancel icon"></i></button>
-                                                                    <button class="ui button data-table-update-submit-button" onclick="data_table.update_submit()"><i class="save icon"></i></button>
+                                                                    <button class="ui action button data-table-update-leave-button" onclick="data_table.update_leave()"><i class="cancel icon"></i></button>
+                                                                    <button class="ui action button data-table-update-submit-button" onclick="data_table.update_submit()"><i class="save icon"></i></button>
                                                                 </div>
                                                                 <div class="ui basic icon buttons">
-                                                                    <button class="ui button data-table-update-enter-button" onclick="data_table.update_enter('<?php echo md5(implode(',', $row_value)) ?>')"><i class="edit icon"></i></button>
-                                                                    <button class="ui button data-table-delete-submit-button" onclick="data_table.delete_submit('<?php echo md5(implode(',', $row_value)) ?>')"><i class="trash icon"></i></button>
+                                                                    <button class="ui action button data-table-update-enter-button" onclick="data_table.update_enter('<?php echo md5(implode(',', $row_value)) ?>')"><i class="edit icon"></i></button>
+                                                                    <button class="ui action button data-table-delete-submit-button" onclick="data_table.delete_submit('<?php echo md5(implode(',', $row_value)) ?>')"><i class="trash icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -396,8 +360,8 @@ $table_structure_data_types = array("int", "varchar", "text", "date");
                                                         <?php foreach ($fields as $field_index => $field_value): ?>
                                                             <td>
                                                                 <div class="ui basic icon buttons">
-                                                                    <button class="ui button data-table-order-by-asc-button" onclick="data_table.order_by('<?php echo $field_value['COLUMN_NAME'] ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
-                                                                    <button class="ui button data-table-order-by-desc-button" onclick="data_table.order_by('<?php echo $field_value['COLUMN_NAME'] ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
+                                                                    <button class="ui sort button data-table-order-by-asc-button <?php echo (isset($_GET['orderby']) && explode(' ', $_GET['orderby'])[0] === $field_value['COLUMN_NAME'] && explode(' ', $_GET['orderby'])[1] === 'asc' ? 'disabled' : '') ?>" onclick="data_table.order_by('<?php echo $field_value['COLUMN_NAME'] ?>', 'asc')"><i class="fitted up arrow icon"></i></button>
+                                                                    <button class="ui sort button data-table-order-by-desc-button <?php echo (isset($_GET['orderby']) && explode(' ', $_GET['orderby'])[0] === $field_value['COLUMN_NAME'] && explode(' ', $_GET['orderby'])[1] === 'desc' ? 'disabled' : '') ?>" onclick="data_table.order_by('<?php echo $field_value['COLUMN_NAME'] ?>', 'desc')"><i class="fitted down arrow icon"></i></button>
                                                                 </div>
                                                             </td>
                                                         <?php endforeach ?>
@@ -407,74 +371,68 @@ $table_structure_data_types = array("int", "varchar", "text", "date");
                                             </table>
                                         </div>
                                     </div>
-                                    <div class="row" style="padding-bottom: 0;">
-                                        <div class="sixteen wide column">
-                                            <div class="ui basic right floated buttons">
-                                                <?php if(isset($_SESSION['logged-in']) && $_SESSION['logged-in']): ?>
-                                                    <button id="structure-table-new-column-button" class="ui button" onclick="structure_table.create_enter()"><i class="plus icon"></i>New Attribute</button>
-                                                <?php endif ?>
+                                    <?php if(isset($_SESSION['logged-in']) && $_SESSION['logged-in']): ?>
+                                        <div class="row" style="padding-bottom: 0;">
+                                            <div class="sixteen wide column">
+                                                <div class="ui basic right floated buttons">
+                                                    <button id="structure-table-new-attribute-button" class="ui action button" onclick="structure_table.create_enter()"><i class="plus icon"></i>New Attribute</button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="sixteen wide column">
-                                            <table id="structure-table" class="ui center aligned table" data-table="<?php echo $current_table ?>">
-                                                <thead class="full-width">
-                                                    <tr>
-                                                        <?php foreach ($fields[0] as $field_index => $field_value): ?>
-                                                            <th data-field="<?php echo $field_index ?>"><?php echo ucwords(str_replace("_", " ", strtolower($field_name_mapping[$field_index]))) ?></th>
-                                                        <?php endforeach ?>
-                                                        <?php if(isset($_SESSION['logged-in']) && $_SESSION['logged-in']): ?>
+                                        <div class="row">
+                                            <div class="sixteen wide column">
+                                                <table id="structure-table" class="ui center aligned table" data-table="<?php echo $current_table ?>">
+                                                    <thead class="full-width">
+                                                        <tr>
+                                                            <?php foreach ($fields[0] as $field_index => $field_value): ?>
+                                                                <th data-field="<?php echo $field_index ?>"><?php echo ucwords(str_replace("_", " ", strtolower($field_name_mapping[$field_index]))) ?></th>
+                                                            <?php endforeach ?>
                                                             <th class="collapsing">Action</th>
-                                                        <?php endif ?>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr style="display: none !important;">
-                                                        <?php foreach ($fields[0] as $field_index => $field_value): ?>
-                                                            <td class="input">
-                                                                <div class="ui fluid input">
-                                                                    <input type="text" name="<?php echo $field_index ?>" placeholder="<?php echo ucwords(str_replace("_", " ", strtolower($field_index))) ?>">
-                                                                </div>
-                                                            </td>
-                                                        <?php endforeach ?>
-                                                        <?php if(isset($_SESSION['logged-in']) && $_SESSION['logged-in']): ?>
-                                                            <td>
-                                                                <div class="ui basic icon buttons">
-                                                                    <button class="ui button structure-table-create-leave-button" onclick="structure_table.create_leave()"><i class="cancel icon"></i></button>
-                                                                    <button class="ui button structure-table-create-submit-button" onclick="structure_table.create_submit()"><i class="save icon"></i></button>
-                                                                </div>
-                                                            </td>
-                                                        <?php endif ?>
-                                                    </tr>
-                                                    <?php foreach ($fields as $field): ?>
-                                                        <tr data-row="<?php echo md5(implode(',', $field)) ?>">
-                                                            <?php foreach ($field as $field_index => $field_value): ?>
-                                                                <td class="data" data-field="<?php echo $field_index ?>" data-value="<?php echo $field_value ?>">
-                                                                    <data><?php echo $field_index === 'DATA_TYPE' ? strtoupper($field_value) : $field_value ?></data>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr style="display: none !important;">
+                                                            <?php foreach ($fields[0] as $field_index => $field_value): ?>
+                                                                <td class="input">
+                                                                    <div class="ui fluid input">
+                                                                        <input type="text" name="<?php echo $field_index ?>" placeholder="<?php echo ucwords(str_replace("_", " ", strtolower($field_name_mapping[$field_index]))) ?>">
+                                                                    </div>
                                                                 </td>
                                                             <?php endforeach ?>
-                                                            <?php if(isset($_SESSION['logged-in']) && $_SESSION['logged-in']): ?>
+                                                            <td>
+                                                                <div class="ui basic icon buttons">
+                                                                    <button class="ui action button structure-table-create-leave-button" onclick="structure_table.create_leave()"><i class="cancel icon"></i></button>
+                                                                    <button class="ui action button structure-table-create-submit-button" onclick="structure_table.create_submit()"><i class="save icon"></i></button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <?php foreach ($fields as $field): ?>
+                                                            <tr data-row="<?php echo md5(implode(',', $field)) ?>">
+                                                                <?php foreach ($field as $field_index => $field_value): ?>
+                                                                    <td class="data" data-field="<?php echo $field_name_mapping[$field_index] ?>" data-value="<?php echo $field_value ?>"><!-- -->
+                                                                        <data><?php echo $field_index === 'DATA_TYPE' ? strtoupper($field_value) : $field_value ?></data>
+                                                                    </td>
+                                                                <?php endforeach ?>
                                                                 <td>
                                                                     <div class="ui basic icon buttons" style="display: none !important;">
-                                                                        <button class="ui button structure-table-update-leave-button" onclick="structure_table.update_leave()"><i class="cancel icon"></i></button>
-                                                                        <button class="ui button structure-table-shift-up-button"><i class="fitted up arrow icon"></i></button>
-                                                                        <button class="ui button structure-table-shift-down-button"><i class="fitted down arrow icon"></i></button>
-                                                                        <button class="ui button structure-table-update-submit-button" onclick="structure_table.update_submit()"><i class="save icon"></i></button>
+                                                                        <button class="ui action button structure-table-update-leave-button" onclick="structure_table.update_leave()"><i class="cancel icon"></i></button>
+                                                                        <button class="ui action button structure-table-shift-up-button" disabled><i class="fitted up arrow icon"></i></button>
+                                                                        <button class="ui action button structure-table-shift-down-button" disabled><i class="fitted down arrow icon"></i></button>
+                                                                        <button class="ui action button structure-table-update-submit-button" onclick="structure_table.update_submit()"><i class="save icon"></i></button>
                                                                     </div>
                                                                     <div class="ui basic icon buttons">
-                                                                        <button class="ui button structure-table-update-enter-button" onclick="structure_table.update_enter('<?php echo md5(implode(',', $field)) ?>')"><i class="edit icon"></i></button>
-                                                                        <button class="ui button structure-table-delete-submit-button" onclick="structure_table.delete_submit('<?php echo md5(implode(',', $field)) ?>')"><i class="trash icon"></i></button>
+                                                                        <button class="ui action button structure-table-update-enter-button" onclick="structure_table.update_enter('<?php echo md5(implode(',', $field)) ?>')"><i class="edit icon"></i></button>
+                                                                        <button class="ui action button structure-table-delete-submit-button" onclick="structure_table.delete_submit('<?php echo md5(implode(',', $field)) ?>')"><i class="trash icon"></i></button>
                                                                     </div>
                                                                 </td>
-                                                            <?php endif ?>
-                                                        </tr>
-                                                    <?php endforeach ?>
-                                                </tbody>
-                                                <tfoot></tfoot>
-                                            </table>
+                                                            </tr>
+                                                        <?php endforeach ?>
+                                                    </tbody>
+                                                    <tfoot></tfoot>
+                                                </table>
+                                            </div>
                                         </div>
-                                    </div>
+                                    <?php endif ?>
                                 </div>
                             </div>
                         </div>

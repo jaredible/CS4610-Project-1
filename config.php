@@ -2,8 +2,8 @@
 $config = array(
     'db' => array(
         'host' => 'localhost',
-        'user' => 'university',
-        'pass' => 'university',
+        'user' => 'root',
+        'pass' => 'mysql',
         'name' => 'university'
     )
 );

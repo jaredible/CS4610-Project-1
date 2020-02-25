@@ -64,35 +64,64 @@ class Table {
             $(this).val("");
         });
 
-        enable_action_buttons();
+        enable_action_buttons(this.table);
     }
 
     update_enter(row_id) {
         this.update_row = this.table.find(`tbody tr[data-row='${row_id}']`);
 
-        this.update_row.find("td.data data").replaceWith(function() {
-            let parent_td_element = $(this).parent();
-            parent_td_element.removeClass("data");
-            parent_td_element.addClass("input");
-            let td_data_field = parent_td_element.attr("data-field");
-            let td_data_value = parent_td_element.attr("data-value");
-            
-            let td_div_element = $("<div>");
-            td_div_element.addClass("ui fluid input");
+        if (this.table_id === 'data-table') {
+            this.update_row.find("td.data data").replaceWith(function() {
+                let parent_td_element = $(this).parent();
+                parent_td_element.removeClass("data");
+                parent_td_element.addClass("input");
+                let td_data_field = parent_td_element.attr("data-field");
+                let td_data_value = parent_td_element.attr("data-value");
+                
+                let td_div_element = $("<div>");
+                td_div_element.addClass("ui fluid input");
 
-            let td_input_element = $("<input>");
-            td_input_element.add
-            td_input_element.attr("type", "text");
-            td_input_element.val(td_data_value);
-            td_input_element.attr("placeholder", to_title_case(td_data_field.replace("_", " ")));
+                let td_input_element = $("<input>");
+                td_input_element.add
+                td_input_element.attr("type", "text");
+                td_input_element.val(td_data_value);
+                td_input_element.attr("placeholder", to_title_case(td_data_field.replace("_", " ")));
 
-            td_div_element.append(td_input_element);
+                td_div_element.append(td_input_element);
 
-            return td_div_element;
-        });
+                return td_div_element;
+            });
+        } else if (this.table_id === 'structure-table') {
+            this.update_row.find("td.data data").replaceWith(function() {
+                let parent_td_element = $(this).parent();
+                parent_td_element.removeClass("data");
+                parent_td_element.addClass("input");
+                let td_data_field = parent_td_element.attr("data-field");
+                let td_data_value = parent_td_element.attr("data-value");
+                
+                let td_div_element = $("<div>");
+                td_div_element.addClass("ui fluid input");
+
+                let td_input_element = $("<input>");
+                td_input_element.add
+                td_input_element.attr("type", "text");
+                td_input_element.val(td_data_value);
+                td_input_element.attr("placeholder", to_title_case(td_data_field.replace("_", " ")));
+
+                td_div_element.append(td_input_element);
+
+                return td_div_element;
+            });
+            let data_type_dropdown = $("#data-type-dropdown .ui.selection.dropdown").clone(true);
+            console.log(data_type_dropdown);
+            this.update_row.find("td.data[data-field='DATA_TYPE'] .ui.fluid.input").replaceWith(data_type_dropdown);
+            $(".ui.dropdown").dropdown();
+        }
 
         this.update_row.find("td:last .buttons:first").attr("style", "");
         this.update_row.find("td:last .buttons:last").attr("style", "display: none !important;");
+
+        disable_action_buttons_except(this.table, this.update_row);
     }
 
     update_submit() {
@@ -150,6 +179,8 @@ class Table {
         this.update_row.find("td:last .buttons:last").attr("style", "");
 
         this.update_row = null;
+
+        enable_action_buttons(this.table);
     }
 
     delete_submit(row_id) {
@@ -233,9 +264,16 @@ function logout() {
 }
 
 function disable_action_buttons_except(table, row) {
+    $(table).find(".ui.action.button").each(function(index, value) {
+        $(this).addClass("disabled");
+    });
+    $(row).find(".ui.action.button").removeClass("disabled");
 }
 
-function enable_action_buttons() {
+function enable_action_buttons(table) {
+    $(table).find(".ui.action.button").each(function(index, value) {
+        $(this).removeClass("disabled");
+    });
 }
 
 function show_help() {
@@ -245,40 +283,22 @@ function show_help() {
 function start_intro() {
     let intro = introJs();
 
-    let steps = [
-        {
-            intro: "<h3>Welcome to University Portal</h3><p>This is just a simple sentence.</p>",
-            tooltipClass: "min-width-250"
-        },
-        {
-            element: "#sidebar-menu-item",
-            intro: "Sidebar Menu Item"
-        },
-        {
-            element: "#login-menu-item",
-            intro: "Login Menu Item"
-        },
-        {
-            element: "#help-menu-item",
-            intro: "Help Menu Item"
-        },
-        {
-            element: "#data-table",
-            intro: "Data Table"
-        },
-        {
-            element: "#data-table-new-row-button",
-            intro: "Help Menu Item"
-        },
-        {
-            element: "#structure-table",
-            intro: "Structure Table"
-        },
-        {
-            element: "#data-table-new-column-button",
-            intro: "Help Menu Item"
-        }
-    ];
+    let logged_in = true;
+
+    let steps = [];
+
+    steps.push({ intro: "<h3>Welcome to University Portal</h3><p>An interface for the university database.</p>", tooltipClass: "min-width-250" });
+    steps.push({ element: "#sidebar-menu-item", intro: "Sidebar Menu Item" });
+    steps.push({ element: "#login-menu-item", intro: "Login Menu Item" });
+    steps.push({ element: "#help-menu-item", intro: "Help Menu Item" });
+    steps.push({ element: "#table-header", intro: "The current table." });
+    steps.push({ element: "#data-table", intro: "Data Table" });
+    steps.push({ element: "#data-table-new-record-button", intro: "Help Menu Item" });
+
+    if (logged_in) {
+        steps.push({ element: "#structure-table", intro: "Structure Table" });
+        steps.push({ element: "#structure-table-new-attribute-button", intro: "Help Menu Item" });
+    }
 
     intro.setOptions({
         showStepNumbers: false,
@@ -286,10 +306,8 @@ function start_intro() {
     });
 
     intro.onbeforechange(function() {
-        //console.log(this);
-        //if (this._currentStep === 1 || this._currentStep === 2) {
-        //    display_error("This is an error!");
-        //}
+        // TODO: handle error popup
+        //display_error("This is where error messages are displayed!");
         return true;
     });
 
