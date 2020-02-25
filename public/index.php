@@ -226,7 +226,7 @@ if (isset($_POST['table-action']) && isset($_POST['table-type'])) {
                     break;
                 case 'update':
                     $sql_column_name = $_POST['new_NAME'];
-                    $sql_column_definition = strtoupper($_POST['new_TYPE']) . ($_POST['new_TYPE'] === 'int' || $_POST['new_TYPE'] === 'varchar' ? '(' . $_POST['new_LENGTH'] . ')' : '') . 'NOT NULL';
+                    $sql_column_definition = strtoupper($_POST['new_TYPE']) . ($_POST['new_TYPE'] === 'int' || $_POST['new_TYPE'] === 'varchar' ? '(' . $_POST['new_LENGTH'] . ')' : '') . ' NOT NULL';
                     $sql = "ALTER TABLE $current_table MODIFY COLUMN $sql_column_name $sql_column_definition";
 
                     $stmt = mysqli_stmt_init($conn);
@@ -278,7 +278,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     $data[] = $row;
 }
 
-$table_structure_data_types = array("int", "varchar", "text", "date");
+$table_structure_data_types = array("int", "varchar");
 ?>
 
 <!DOCTYPE html>
