@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
 
 <!-- -->
-<title><?php echo $title ?></title>
+<title>University Portal</title>
 
 <!-- -->
 <link rel="icon" type="image/x-icon" href="favicon.ico">

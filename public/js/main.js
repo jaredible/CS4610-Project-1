@@ -84,7 +84,7 @@ class Table {
             td_input_element.add
             td_input_element.attr("type", "text");
             td_input_element.val(td_data_value);
-            td_input_element.attr("placeholder", to_title_case(td_data_field));
+            td_input_element.attr("placeholder", to_title_case(td_data_field.replace("_", " ")));
 
             td_div_element.append(td_input_element);
 
@@ -213,6 +213,7 @@ function to_title_case(str) {
     str = str.toLowerCase().split(" ").map(function(word) {
         return word.replace(word[0], word[0].toUpperCase());
     });
+    return str.join(" ");
 }
 
 const data_table = new Table("data-table", "data");
@@ -298,4 +299,5 @@ function start_intro() {
 $(function() {
     init_sidebar();
     check_and_display_error();
+    $(".ui.dropdown").dropdown();
 });
