@@ -41,6 +41,8 @@
 
 * [Fomantic-UI](https://fomantic-ui.com/)
 * [JQuery](https://jquery.com)
+* [PHP](https://www.php.net/)
+* [MySQL](https://www.mysql.com/)
 * [XAMPP](https://www.apachefriends.org)
 
 
@@ -52,6 +54,8 @@ To get a local copy up and running follow these simple steps.
 
 ### Prerequisites
 
+* PHP 5.6+
+* MySQL 8.0+
 * XAMPP 5.6+
 
 ### Installation
