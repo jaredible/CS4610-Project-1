@@ -11,7 +11,9 @@
         <br>
         <br>
         <a href="https://umsl.jaredible.net/cs/4610/project/1">View Demo</a>
+        &middot;
         <a href="https://github.com/jaredible/CS4610-Project-1/issues">Report Bug</a>
+        &middot;
         <a href="https://github.com/jaredible/CS4610-Project-1/issues">Request Feature</a>
     </p>
 </p>
