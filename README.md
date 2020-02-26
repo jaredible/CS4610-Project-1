@@ -65,7 +65,8 @@ To get a local copy up and running follow these simple steps.
 ```sh
 git clone https://github.com/jaredible/CS4610-Project-1.git UniversityPortal
 ```
-3. Enter your database configuration in `config.php`
+3. Open phpMyAdmin and run the `database.sql` script
+4. Enter your database configuration in `config.php`
 ```PHP
 $config = array(
     'db' => array(
@@ -76,7 +77,6 @@ $config = array(
     )
 );
 ```
-4. Open phpMyAdmin and run the `database.sql` script
 
 
 
