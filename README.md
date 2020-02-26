@@ -36,6 +36,7 @@
 [![University Portal][project-screenshot]](https://umsl.jaredible.net/cs/4610/project/1)
 
 ### Built With
+
 * [Fomantic-UI](https://fomantic-ui.com/)
 * [JQuery](https://jquery.com)
 * [PHP](https://www.php.net/)
@@ -51,6 +52,7 @@ To get a local copy up and running follow these simple example steps.
 ### Prerequisites
 
 * PHP 5.6+
+* MySQL 8.0+
 ```sh
 npm install npm@latest -g
 ```
@@ -92,6 +94,12 @@ Contributions are what make the open source community such an amazing place to b
 3. Commit your Changes (`git commit -m 'Added <feature-name>'`)
 4. Push to the Branch (`git push origin feature/<feature-name>`)
 5. Open a Pull Request
+
+
+
+## Acknowledgements
+
+* [Intro.js](https://introjs.com/)
 
 
 
