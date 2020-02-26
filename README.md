@@ -69,13 +69,14 @@ git clone https://github.com/jaredible/CS4610-Project-1.git UniversityPortal
 ```PHP
 $config = array(
     'db' => array(
-        'host' => 'ENTER YOUR HOSTNAME',
+        'host' => 'localhost',
         'user' => 'ENTER YOUR USERNAME',
         'pass' => 'ENTER YOUR PASSWORD',
-        'name' => 'ENTER YOUR DATABASE NAME'
+        'name' => 'university'
     )
 );
 ```
+4. Open phpMyAdmin and run the `database.sql` script
 
 
 
