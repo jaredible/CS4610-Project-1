@@ -60,13 +60,13 @@ npm install npm@latest -g
 
 1. Clone the repo
 ```sh
-git clone https://github.com/your_username_/Project-Name.git
+git clone https://github.com/jaredible/CS4610-Project-1.git
 ```
 2. Enter your database configuration in `config.php`
 ```PHP
 $config = array(
     'db' => array(
-        'host' => 'ENTER YOUR HOST NAME',
+        'host' => 'ENTER YOUR HOSTNAME',
         'user' => 'ENTER YOUR USERNAME',
         'pass' => 'ENTER YOUR PASSWORD',
         'name' => 'ENTER YOUR DATABASE NAME'
@@ -76,7 +76,6 @@ $config = array(
 
 
 
-<!-- USAGE EXAMPLES -->
 ## Usage
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
@@ -85,7 +84,6 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 
 
-<!-- CONTRIBUTING -->
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -98,7 +96,6 @@ Contributions are what make the open source community such an amazing place to b
 
 
 
-<!-- CONTACT -->
 ## Contact
 
 Jared Diehl - [@jaredmdiehl](https://twitter.com/jaredmdiehl) - jared@jaredible.net
