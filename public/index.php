@@ -202,7 +202,6 @@ if (isset($_POST['table-action']) && isset($_POST['table-type'])) {
 
             break;
         case 'structure':
-            // ALTER TABLE `course` ADD `testing` INT NOT NULL AFTER `department`;
             switch ($_POST['table-action']) {
                 case 'create':
                     $sql_column_name = $_POST['COLUMN_NAME'];
