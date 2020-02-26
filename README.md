@@ -63,7 +63,7 @@ To get a local copy up and running follow these simple steps.
 1. Navigate into your `htdocs` directory
 2. Clone the repo
 ```sh
-git clone https://github.com/jaredible/CS4610-Project-1.git UniversityPortal
+git clone https://github.com/jaredible/CS4610-Project-1.git
 ```
 3. Open phpMyAdmin and run the `database.sql` script
 4. Enter your database configuration in `config.php`
@@ -82,7 +82,7 @@ $config = array(
 
 ## Usage
 
-In your browser, you will need to navigate to `localhost/UniversityPortal/public` to view the project.
+In your browser, you will need to navigate to `localhost/CS4610-Project-1/public` to view the project.
 
 
 
