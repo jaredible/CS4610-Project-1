@@ -39,19 +39,18 @@
 * [Fomantic-UI](https://fomantic-ui.com/)
 * [JQuery](https://jquery.com)
 * [PHP](https://www.php.net/)
+* [MySQL](https://www.mysql.com/)
 
 
 
-<!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
+These are instructions of how you may set up your project locally.
 To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
+* PHP 5.6+
 ```sh
 npm install npm@latest -g
 ```
