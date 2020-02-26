@@ -58,18 +58,20 @@ npm install npm@latest -g
 
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+1. Clone the repo
 ```sh
 git clone https://github.com/your_username_/Project-Name.git
 ```
-3. Install NPM packages
-```sh
-npm install
-```
-4. Enter your API in `config.js`
-```JS
-const API_KEY = 'ENTER YOUR API';
+2. Enter your database configuration in `config.php`
+```PHP
+$config = array(
+    'db' => array(
+        'host' => 'ENTER YOUR HOST NAME',
+        'user' => 'ENTER YOUR USERNAME',
+        'pass' => 'ENTER YOUR PASSWORD',
+        'name' => 'ENTER YOUR DATABASE NAME'
+    )
+);
 ```
 
 
