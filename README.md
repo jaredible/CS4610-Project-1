@@ -70,6 +70,7 @@ npm install
 4. Enter your API in `config.js`
 ```JS
 const API_KEY = 'ENTER YOUR API';
+```
 
 
 
