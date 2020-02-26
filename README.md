@@ -41,8 +41,7 @@
 
 * [Fomantic-UI](https://fomantic-ui.com/)
 * [JQuery](https://jquery.com)
-* [PHP](https://www.php.net/)
-* [MySQL](https://www.mysql.com/)
+* [XAMPP](https://www.apachefriends.org)
 
 
 
@@ -53,19 +52,16 @@ To get a local copy up and running follow these simple steps.
 
 ### Prerequisites
 
-* PHP 5.6+
-* MySQL 8.0+
-```sh
-npm install npm@latest -g
-```
+* XAMPP 5.6+
 
 ### Installation
 
-1. Clone the repo
+1. Navigate into your `htdocs` directory
+2. Clone the repo
 ```sh
-git clone https://github.com/jaredible/CS4610-Project-1.git
+git clone https://github.com/jaredible/CS4610-Project-1.git UniversityPortal
 ```
-2. Enter your database configuration in `config.php`
+3. Enter your database configuration in `config.php`
 ```PHP
 $config = array(
     'db' => array(
@@ -81,9 +77,7 @@ $config = array(
 
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
+In your browser, you will need to navigate to `localhost/UniversityPortal/public` to view the project.
 
 
 
