@@ -8,13 +8,9 @@ session_start();
 
 // Load database configurations to be used in this script.
 require_once('../config.php');
-$db_host = $config['db']['host'];
-$db_user = $config['db']['user'];
-$db_pass = $config['db']['pass'];
-$db_name = $config['db']['name'];
 
 // Attempt to connect to the database, and if not, then display an error message
-$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
+$conn = mysqli_connect($config['db']['host'], $config['db']['user'], $config['db']['pass'], $config['db']['name']);
 if (!$conn) {
     die('Could not connect: ' . mysqli_connect_error());
 }
@@ -29,7 +25,7 @@ if (isset($_POST['log-action'])) {
             $username = $_POST['username'];
             $password = $_POST['password'];
 
-            if ($username === $db_user && $password === $db_pass) {
+            if ($username === $config['db']['user'] && $password === $config['db']['pass']) {
                 $_SESSION['logged-in'] = true;
 
                 if (isset($_POST['remember'])) {
@@ -54,7 +50,7 @@ if (isset($_POST['log-action'])) {
     }
 } else {
     if(isset($_COOKIE['selector']) && isset($_COOKIE['validator'])) {
-        if ($_COOKIE['selector'] === $db_user && $_COOKIE['validator'] === $db_pass) {
+        if ($_COOKIE['selector'] === $config['db']['user'] && $_COOKIE['validator'] === $config['db']['pass']) {
             $_SESSION['logged-in'] = true;
         }
     }
@@ -71,7 +67,7 @@ $fields = array();
 $data = array(); // 2D array
 
 // Get all table names in alphabetical order.
-$query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '$db_name' ORDER BY TABLE_NAME ASC";
+$query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{$config['db']['name']}' ORDER BY TABLE_NAME ASC";
 $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_array($result)) {
     $tables[] = $row[0];
@@ -91,7 +87,7 @@ $field_name_mapping = array(
 );
 
 // Get current table's column names.
-$query = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table' ORDER BY ORDINAL_POSITION";
+$query = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '{$config['db']['name']}' AND TABLE_NAME = '$current_table' ORDER BY ORDINAL_POSITION";
 $result = mysqli_query($conn, $query);
 while ($row = mysqli_fetch_assoc($result)) {
     $fields[] = $row;
@@ -261,7 +257,7 @@ if (isset($_POST['table-action']) && isset($_POST['table-type'])) {
             $fields = array();
 
             // Get current table's column names after updating them.
-            $query = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME = '$current_table'";
+            $query = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '{$config['db']['name']}' AND TABLE_NAME = '$current_table'";
             $result = mysqli_query($conn, $query);
             while ($row = mysqli_fetch_assoc($result)) {
                 $fields[] = $row;
