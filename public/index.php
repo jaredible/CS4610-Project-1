@@ -463,5 +463,4 @@ $table_structure_data_types = array("int", "varchar");
     </body>
 </html>
 
-<!-- -->
 <?php mysqli_close($conn) ?>
