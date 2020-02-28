@@ -83,7 +83,7 @@ $config = array(
 ## Usage
 
 - In your browser, you will need to navigate to `localhost/CS4610-Project-1/public` to view the project.
-- To login, use your configuration's database username and password.
+- To login, use the same database username and password.
 
 
 
