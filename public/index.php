@@ -205,8 +205,10 @@ if (isset($_POST['table-action']) && isset($_POST['table-type'])) {
             switch ($_POST['table-action']) {
                 case 'create':
                     $sql_column_name = $_POST['COLUMN_NAME'];
-                    $sql_column_definition = strtoupper($_POST['DATA_TYPE']) . ($_POST['DATA_TYPE'] === 'int' || $_POST['DATA_TYPE'] === 'varchar' ? '(' . $_POST['CHARACTER_MAXIMUM_LENGTH'] . ')' : '') . 'NOT NULL';
+                    $sql_column_definition = strtoupper($_POST['DATA_TYPE']) . ($_POST['DATA_TYPE'] === 'int' || $_POST['DATA_TYPE'] === 'varchar' ? '(' . $_POST['CHARACTER_MAXIMUM_LENGTH'] . ')' : '') . ' NOT NULL';
                     $sql = "ALTER TABLE $current_table ADD COLUMN $sql_column_name $sql_column_definition";
+
+                    echo $sql . '<br>';
 
                     $stmt = mysqli_stmt_init($conn);
 
